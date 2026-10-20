@@ -206,7 +206,7 @@
                     </div>
                 </div>
 
-                <!-- NEW: Melodic Lead Engine -->
+                <!-- Melodic Lead Engine -->
                 <div class="border-t border-slate-800 pt-4 mt-2">
                     <h3 class="text-xs font-semibold tracking-wider text-blue-400 uppercase mb-3">Melodic Lead Engine</h3>
                     <div class="flex flex-col gap-3">
@@ -246,12 +246,10 @@
 
     <!-- Audio & Canvas Logic -->
     <script>
-        // Web Audio API State
         let audioCtx = null;
         let masterGain = null;
         let analyser = null;
 
-        // Sound Nodes
         let droneOsc1 = null, droneOsc2 = null, droneGain = null;
         let rainNode = null, rainGain = null;
         let windNode = null, windGain = null;
@@ -260,20 +258,18 @@
         let chordGain = null, chimeGain = null;
         let leadGain = null;
 
-        // Intervals & Loops
         let arpInterval = null;
         let chordInterval = null;
         let leadInterval = null;
         let isPlaying = false;
 
-        // 432 Hz Tuned Scales
         const baseA4 = 432;
         const scales = {
-            pentatonic: [0, 3, 5, 7, 10],     // Minor Pentatonic
-            aeolian: [0, 2, 3, 5, 7, 8, 10],  // Natural Minor
-            dorian: [0, 2, 3, 5, 7, 9, 10],   // Dorian
-            lydian: [0, 2, 4, 6, 7, 9, 11],   // Lydian
-            bhupali: [0, 2, 4, 7, 9]          // Raga Bhupali
+            pentatonic: [0, 3, 5, 7, 10],
+            aeolian: [0, 2, 3, 5, 7, 8, 10],
+            dorian: [0, 2, 3, 5, 7, 9, 10],
+            lydian: [0, 2, 4, 6, 7, 9, 11],
+            bhupali: [0, 2, 4, 7, 9]
         };
 
         const chordProgressions = {
@@ -290,38 +286,32 @@
             return baseA4 * Math.pow(2, semitonesFromA4 / 12);
         }
 
-        // Initialize Web Audio Engine
         function initAudio() {
             if (audioCtx) return;
 
             const AudioContext = window.AudioContext || window.webkitAudioContext;
             audioCtx = new AudioContext();
 
-            // Master Gain
             masterGain = audioCtx.createGain();
             masterGain.gain.setValueAtTime(parseFloat(document.getElementById('masterVolume').value), audioCtx.currentTime);
 
-            // Analyser for Canvas
             analyser = audioCtx.createAnalyser();
             analyser.fftSize = 128;
 
             masterGain.connect(analyser);
             analyser.connect(audioCtx.destination);
 
-            // Build Individual Sound Layers
             setupDroneLayer();
             setupNatureLayer();
             setupToneLayers();
             setupChordLayer();
             setupLeadLayer();
 
-            // Start Generative Loops
             startArpGenerator();
             startChordGenerator();
             startLeadGenerator();
         }
 
-        // Drone Layer
         function setupDroneLayer() {
             droneGain = audioCtx.createGain();
             droneGain.gain.setValueAtTime(parseFloat(document.getElementById('droneVolume').value), audioCtx.currentTime);
@@ -336,8 +326,8 @@
             droneOsc1.type = 'sine';
             droneOsc2.type = 'triangle';
 
-            droneOsc1.frequency.setValueAtTime(noteToFreq(-24), audioCtx.currentTime); // A2 (108 Hz)
-            droneOsc2.frequency.setValueAtTime(noteToFreq(-24.05), audioCtx.currentTime); // Slight detune
+            droneOsc1.frequency.setValueAtTime(noteToFreq(-24), audioCtx.currentTime);
+            droneOsc2.frequency.setValueAtTime(noteToFreq(-24.05), audioCtx.currentTime);
 
             droneOsc1.connect(filter);
             droneOsc2.connect(filter);
@@ -348,7 +338,6 @@
             droneOsc2.start();
         }
 
-        // Nature Layer (Noise Synthesis)
         function setupNatureLayer() {
             const bufferSize = audioCtx.sampleRate * 2;
             const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
@@ -357,11 +346,10 @@
             let lastOut = 0.0;
             for (let i = 0; i < bufferSize; i++) {
                 const white = Math.random() * 2 - 1;
-                output[i] = (lastOut + (0.02 * white)) / 1.02; // Brown noise approximation
+                output[i] = (lastOut + (0.02 * white)) / 1.02;
                 lastOut = output[i];
             }
 
-            // Rain Generator
             rainNode = audioCtx.createBufferSource();
             rainNode.buffer = noiseBuffer;
             rainNode.loop = true;
@@ -379,7 +367,6 @@
             rainGain.connect(masterGain);
             rainNode.start();
 
-            // Wind Generator
             windNode = audioCtx.createBufferSource();
             windNode.buffer = noiseBuffer;
             windNode.loop = true;
@@ -397,7 +384,6 @@
             windNode.start();
         }
 
-        // Solfeggio & Binaural Setup
         function setupToneLayers() {
             binauralGain = audioCtx.createGain();
             binauralGain.gain.setValueAtTime(parseFloat(document.getElementById('toneVolume').value), audioCtx.currentTime);
@@ -435,7 +421,7 @@
         function updateBinauralFrequency() {
             if (!audioCtx) return;
             const val = document.getElementById('binauralSelect').value;
-            const baseFreq = 216; // A3
+            const baseFreq = 216;
 
             if (val === 'none') {
                 binauralLeft.frequency.setValueAtTime(0, audioCtx.currentTime);
@@ -467,7 +453,6 @@
             solfeggioGain.gain.setValueAtTime(parseFloat(document.getElementById('toneVolume').value) * 0.3, audioCtx.currentTime);
         }
 
-        // Chord Layer Setup
         function setupChordLayer() {
             chordGain = audioCtx.createGain();
             chordGain.gain.setValueAtTime(parseFloat(document.getElementById('chordVolume').value), audioCtx.currentTime);
@@ -478,14 +463,12 @@
             chimeGain.connect(masterGain);
         }
 
-        // Lead Layer Setup
         function setupLeadLayer() {
             leadGain = audioCtx.createGain();
             leadGain.gain.setValueAtTime(parseFloat(document.getElementById('leadVolume').value), audioCtx.currentTime);
             leadGain.connect(masterGain);
         }
 
-        // Generative Random Arps
         function startArpGenerator() {
             if (arpInterval) clearInterval(arpInterval);
 
@@ -526,7 +509,6 @@
             }, 800);
         }
 
-        // Evolving Chord Generator
         function startChordGenerator() {
             if (chordInterval) clearInterval(chordInterval);
 
@@ -559,7 +541,6 @@
                     osc.stop(now + morphSpeed + 0.1);
                 });
 
-                // Trigger Random Chime Counterpoint
                 if (Math.random() > 0.3) {
                     triggerChime(chordNotes[Math.floor(Math.random() * chordNotes.length)] + 12);
                 }
@@ -567,7 +548,6 @@
             }, 8000);
         }
 
-        // High Frequency Chime Counterpoint
         function triggerChime(semitones) {
             const now = audioCtx.currentTime;
             const carrier = audioCtx.createOscillator();
@@ -597,7 +577,6 @@
             modulator.stop(now + 4.1);
         }
 
-        // NEW: Melodic Lead Generator
         function startLeadGenerator() {
             if (leadInterval) clearInterval(leadInterval);
 
@@ -611,7 +590,6 @@
                 const scaleName = document.getElementById('scaleSelect').value;
                 const scale = scales[scaleName];
 
-                // Focus lead on middle-high octaves
                 const randomDegree = scale[Math.floor(Math.random() * scale.length)];
                 const randomOctave = Math.random() > 0.5 ? 0 : 12; 
                 const semitones = randomDegree + randomOctave - 12;
@@ -670,7 +648,6 @@
             osc.stop(now + 3.5);
         }
 
-        // Canvas Audio Visualizer
         const canvas = document.getElementById('visualizerCanvas');
         const ctx = canvas.getContext('2d');
 
@@ -716,7 +693,6 @@
             ctx.lineTo(canvas.width, canvas.height / 2);
             ctx.stroke();
 
-            // Floating Ambient Particles
             for (let i = 0; i < 15; i++) {
                 const val = dataArray[i * 4];
                 const radius = (val / 255) * 8 + 2;
@@ -731,7 +707,6 @@
         }
         drawVisualizer();
 
-        // Event Listeners
         document.getElementById('startBtn').addEventListener('click', () => {
             initAudio();
             if (audioCtx.state === 'suspended') {
@@ -754,7 +729,6 @@
             document.getElementById('overlayText').innerText = 'AUDIO PAUSED';
         });
 
-        // Dynamic Slider Listeners
         document.getElementById('masterVolume').addEventListener('input', (e) => {
             if (masterGain) masterGain.gain.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
         });
@@ -813,7 +787,6 @@
             startLeadGenerator();
         });
 
-        // Presets Setup
         document.getElementById('presetSelect').addEventListener('change', (e) => {
             const preset = e.target.value;
             if (preset === 'meditation') {
@@ -848,7 +821,6 @@
                 document.getElementById('leadVolume').value = 0.2;
             }
 
-            // Trigger events to update gain nodes
             document.getElementById('droneVolume').dispatchEvent(new Event('input'));
             document.getElementById('arpVolume').dispatchEvent(new Event('input'));
             document.getElementById('rainVolume').dispatchEvent(new Event('input'));
