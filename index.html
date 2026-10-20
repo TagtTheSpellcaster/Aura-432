@@ -1,1157 +1,863 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full bg-slate-950 text-slate-100">
+<html lang="en">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AURA 432 - Generative Ambient & Harmonic Synthesizer</title>
-    <!-- Tailwind CSS for modern responsive styling -->
+    <title>Aura 432 — Ambient Music Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Inter Font & Lucide Icons -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600&display=swap" rel="stylesheet">
-    <script src="https://unpkg.com/lucide@latest"></script>
     <style>
         body {
-            font-family: 'Inter', sans-serif;
-            user-select: none;
+            background-color: #0b0f19;
+            color: #e2e8f0;
+            font-family: system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif;
         }
-        /* Custom range input slider styles */
+        .glow-box {
+            box-shadow: 0 0 25px rgba(59, 130, 246, 0.15);
+        }
         input[type=range] {
-            -webkit-appearance: none;
-            background: rgba(255, 255, 255, 0.1);
-            border-radius: 9999px;
-            height: 6px;
-        }
-        input[type=range]::-webkit-slider-thumb {
-            -webkit-appearance: none;
-            height: 18px;
-            width: 18px;
-            border-radius: 50%;
-            background: #38bdf8;
-            cursor: pointer;
-            box-shadow: 0 0 10px rgba(56, 189, 248, 0.5);
-            transition: transform 0.1s ease, background-color 0.2s;
-        }
-        input[type=range]::-webkit-slider-thumb:hover {
-            transform: scale(1.15);
-            background: #7dd3fc;
-        }
-        /* Thin custom scrollbar */
-        ::-webkit-scrollbar {
-            width: 6px;
-        }
-        ::-webkit-scrollbar-track {
-            background: rgba(15, 23, 42, 0.6);
-        }
-        ::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
-            border-radius: 3px;
-        }
-        ::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.3);
+            accent-color: #3b82f6;
         }
     </style>
 </head>
-<body class="h-full flex flex-col justify-between overflow-x-hidden bg-gradient-to-b from-slate-950 via-slate-900 to-indigo-950">
+<body class="min-h-screen flex flex-col items-center justify-between p-4 md:p-8">
 
-    <!-- Application Header -->
-    <header class="w-full p-4 md:p-6 border-b border-white/10 flex justify-between items-center backdrop-blur-md bg-slate-950/40 z-10">
-        <div class="flex items-center space-x-3">
-            <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-500 flex items-center justify-center shadow-lg shadow-cyan-500/20">
-                <i data-lucide="waves" class="w-6 h-6 text-white"></i>
-            </div>
-            <div>
-                <h1 class="text-xl font-medium tracking-wide bg-clip-text text-transparent bg-gradient-to-r from-cyan-200 via-sky-100 to-indigo-200">AURA 432</h1>
-                <p class="text-xs text-slate-400">Organic Ambient & Harmonic Generator • 432 Hz</p>
-            </div>
+    <!-- Header Section -->
+    <header class="w-full max-w-5xl flex flex-col md:flex-row items-center justify-between gap-4 mb-6 border-b border-slate-800 pb-4">
+        <div>
+            <h1 class="text-3xl font-extralight tracking-widest text-blue-400">AURA <span class="font-semibold text-slate-100">432</span></h1>
+            <p class="text-xs text-slate-400 tracking-wider mt-1">REAL-TIME GENERATIVE AMBIENT SOUNDSCAPE & VISUALIZER</p>
         </div>
-
-        <!-- Master Play / Pause Header Button -->
-        <button id="mainPlayBtn" class="px-6 py-2.5 rounded-full bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-white font-medium text-sm flex items-center gap-2 shadow-lg shadow-cyan-500/25 transition-all transform active:scale-95">
-            <i data-lucide="play" id="playIcon" class="w-4 h-4 fill-current"></i>
-            <span id="playBtnText">Start Audio</span>
-        </button>
+        <div class="flex items-center gap-4">
+            <button id="startBtn" class="px-6 py-2.5 bg-blue-600 hover:bg-blue-500 text-white font-medium rounded-full transition-all duration-300 shadow-lg shadow-blue-500/30 flex items-center gap-2">
+                Start Audio
+            </button>
+            <button id="stopBtn" class="px-6 py-2.5 bg-slate-800 hover:bg-slate-700 text-slate-300 font-medium rounded-full transition-all duration-300 hidden">
+                Pause Audio
+            </button>
+        </div>
     </header>
 
     <!-- Main Container -->
-    <main class="flex-1 max-w-7xl w-full mx-auto p-4 md:p-6 grid grid-cols-1 lg:grid-cols-12 gap-6 relative z-10">
-        
-        <!-- Left / Center Column: Visualizer Canvas & Atmosphere Controls -->
-        <div class="lg:col-span-7 flex flex-col gap-6">
-            
-            <!-- Audio Visualizer Canvas -->
-            <div class="relative w-full h-64 md:h-80 rounded-3xl overflow-hidden border border-white/10 bg-slate-900/60 backdrop-blur-xl shadow-2xl flex flex-col items-center justify-center group">
-                <canvas id="visualizerCanvas" class="absolute inset-0 w-full h-full"></canvas>
+    <main class="w-full max-w-5xl grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
+
+        <!-- Visualizer & Presets Column -->
+        <section class="lg:col-span-2 flex flex-col gap-6">
+            <!-- Canvas Visualizer -->
+            <div class="relative w-full h-64 md:h-80 bg-slate-950/80 rounded-2xl border border-slate-800/80 overflow-hidden glow-box">
+                <canvas id="visualizerCanvas" class="w-full h-full block"></canvas>
+                <div id="overlayText" class="absolute inset-0 flex items-center justify-center text-slate-500 text-sm tracking-wider pointer-events-none">
+                    PRESS "START AUDIO" TO INITIALIZE 432 HZ SYNTHESIS
+                </div>
+            </div>
+
+            <!-- Global Controls & Presets -->
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4 backdrop-blur-md">
+                <div class="flex items-center justify-between">
+                    <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">Master Acoustics & Presets</h2>
+                    <span class="text-xs text-blue-400 font-mono">A4 = 432 Hz</span>
+                </div>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Master Volume</label>
+                        <input type="range" id="masterVolume" min="0" max="1" step="0.01" value="0.7" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Soundscape Preset</label>
+                        <select id="presetSelect" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="custom">Custom Soundscape</option>
+                            <option value="meditation">Deep Meditation (Drone + 528 Hz)</option>
+                            <option value="rainyFocus">Rainy Focus (Gentle Rain + Pentatonic)</option>
+                            <option value="cosmicDrift">Cosmic Drift (Chords + Slow Lead)</option>
+                            <option value="solfeggioHealing">Solfeggio Healing (432 Hz + Binaural Alpha)</option>
+                        </select>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Generative Harmonic Evolution -->
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4 backdrop-blur-md">
+                <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">Generative Harmonic Evolution</h2>
+                <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Scale / Mode</label>
+                        <select id="scaleSelect" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="pentatonic">Pentatonic Minor</option>
+                            <option value="aeolian">Aeolian (Natural Minor)</option>
+                            <option value="dorian">Dorian Mode</option>
+                            <option value="lydian">Lydian Mode</option>
+                            <option value="bhupali">Raga Bhupali</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Melodic Density</label>
+                        <input type="range" id="densitySlider" min="1" max="10" step="1" value="4" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Octave Range</label>
+                        <input type="range" id="octaveSlider" min="1" max="3" step="1" value="2" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Harmonic & Chord Layer -->
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4 backdrop-blur-md">
+                <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">Harmonic & Chord Progression Layer</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Chord Progression</label>
+                        <select id="chordProgSelect" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="atmospheric">Atmospheric (I - V - vi - IV)</option>
+                            <option value="modal">Modal Drift (i - VII - VI - v)</option>
+                            <option value="susCycle">Warm Sus2 Cycle</option>
+                            <option value="harmonic">Harmonic Minor Shift</option>
+                            <option value="ambientEther">Ambient Ether (maj7 / add9)</option>
+                        </select>
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Morphing Speed</label>
+                        <input type="range" id="chordMorphSpeed" min="4" max="24" step="2" value="12" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Chord Layer Volume</label>
+                        <input type="range" id="chordVolume" min="0" max="1" step="0.01" value="0.4" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Bell / Chime Counterpoint</label>
+                        <input type="range" id="chimeVolume" min="0" max="1" step="0.01" value="0.25" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Sidebar Mixer Column -->
+        <section class="flex flex-col gap-6">
+            <!-- Channel Mixer -->
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4 backdrop-blur-md">
+                <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">Channel Mixer</h2>
                 
-                <!-- Canvas Status Info Overlay -->
-                <div class="absolute top-4 left-4 flex items-center gap-2 bg-slate-950/60 border border-white/10 backdrop-blur-md px-3 py-1.5 rounded-full text-xs text-cyan-300">
-                    <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" id="statusDot"></span>
-                    <span id="statusText">A4 = 432.00 Hz (Waiting)</span>
-                </div>
-
-                <div class="absolute bottom-4 right-4 text-xs text-slate-400 bg-slate-950/60 border border-white/10 backdrop-blur-md px-3 py-1.5 rounded-full">
-                    WebAudio Organic Synthesis
-                </div>
-
-                <!-- Quick Start Canvas Overlay -->
-                <div id="canvasOverlay" class="absolute inset-0 bg-slate-950/70 backdrop-blur-sm flex flex-col items-center justify-center transition-opacity duration-500">
-                    <button id="overlayStartBtn" class="p-5 rounded-full bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 hover:bg-cyan-500/30 hover:scale-105 transition-all shadow-xl shadow-cyan-500/10 group-hover:border-cyan-400">
-                        <i data-lucide="power" class="w-10 h-10"></i>
-                    </button>
-                    <p class="mt-4 text-sm text-slate-300 font-light">Click to tune to 432 Hz</p>
-                </div>
-            </div>
-
-            <!-- Master & Spatial Acoustics Controls -->
-            <div class="p-5 md:p-6 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-xl space-y-6">
-                <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
-                    <i data-lucide="sliders" class="w-4 h-4 text-cyan-400"></i> Master & Ambient Acoustics
-                </h2>
-
-                <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <!-- Master Volume -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs text-slate-300">
-                            <span>Master Volume</span>
-                            <span id="masterVolValue" class="text-cyan-400">70%</span>
-                        </div>
-                        <input type="range" id="masterVolume" min="0" max="1" step="0.01" value="0.7" class="w-full">
-                    </div>
-
-                    <!-- Low-Pass Cutoff Filter -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs text-slate-300">
-                            <span>Filter Cutoff</span>
-                            <span id="filterCutoffValue" class="text-cyan-400">1200 Hz</span>
-                        </div>
-                        <input type="range" id="filterCutoff" min="100" max="5000" step="10" value="1200" class="w-full">
-                    </div>
-
-                    <!-- Space / Delay & Reverb Mix -->
-                    <div class="space-y-2">
-                        <div class="flex justify-between text-xs text-slate-300">
-                            <span>Reverb/Delay Space</span>
-                            <span id="reverbMixValue" class="text-cyan-400">60%</span>
-                        </div>
-                        <input type="range" id="reverbMix" min="0" max="1" step="0.01" value="0.6" class="w-full">
-                    </div>
-                </div>
-            </div>
-
-            <!-- Generative Melodic Evolution & Scale Selection -->
-            <div class="p-5 md:p-6 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-xl space-y-5">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
-                        <i data-lucide="sparkles" class="w-4 h-4 text-indigo-400"></i> Generative Melodic Evolution
-                    </h2>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="melodyToggle" class="sr-only peer" checked>
-                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-cyan-500"></div>
-                    </label>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Harmonic Scale Selection -->
+                <div class="flex flex-col gap-3">
                     <div>
-                        <label class="block text-xs text-slate-400 mb-2">Harmonic Scale (432Hz Base)</label>
-                        <select id="scaleSelect" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-cyan-500 transition-colors">
-                            <option value="pentatonic">Zen Pentatonic (Relaxing Mode)</option>
-                            <option value="aeolian">Suspended Aeolian (Natural Minor)</option>
-                            <option value="dorian">Astral Dorian (Mystical)</option>
-                            <option value="lydian">Ethereal Lydian (Luminous)</option>
-                            <option value="bhupali">Raga Bhupali (Meditative)</option>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Evolving Pad / Drone</span>
+                            <span id="droneVolVal">0.5</span>
+                        </div>
+                        <input type="range" id="droneVolume" min="0" max="1" step="0.01" value="0.5" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Random Melodic Arps</span>
+                            <span id="arpVolVal">0.4</span>
+                        </div>
+                        <input type="range" id="arpVolume" min="0" max="1" step="0.01" value="0.4" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Organic Rain Texture</span>
+                            <span id="rainVolVal">0.2</span>
+                        </div>
+                        <input type="range" id="rainVolume" min="0" max="1" step="0.01" value="0.2" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+
+                    <div>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Wind Resonance</span>
+                            <span id="windVolVal">0.15</span>
+                        </div>
+                        <input type="range" id="windVolume" min="0" max="1" step="0.01" value="0.15" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                    </div>
+                </div>
+            </div>
+
+            <!-- Solfeggio & Binaural Beat Controls -->
+            <div class="bg-slate-900/60 border border-slate-800 p-5 rounded-2xl flex flex-col gap-4 backdrop-blur-md">
+                <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase">Solfeggio & Binaural Tone</h2>
+                
+                <div class="flex flex-col gap-3">
+                    <div>
+                        <label class="text-xs text-slate-400 block mb-1">Binaural Beat Frequency</label>
+                        <select id="binauralSelect" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="none">Disabled</option>
+                            <option value="delta">Delta (2.0 Hz - Deep Sleep)</option>
+                            <option value="theta">Theta (6.0 Hz - Meditation)</option>
+                            <option value="alpha">Alpha (10.0 Hz - Relaxation)</option>
+                            <option value="beta">Beta (18.0 Hz - Focus)</option>
                         </select>
                     </div>
 
-                    <!-- Note Generation Rate / Tempo -->
                     <div>
-                        <label class="block text-xs text-slate-400 mb-2">Note Generation Rate</label>
-                        <div class="flex items-center gap-3">
-                            <input type="range" id="melodySpeed" min="2" max="12" step="0.5" value="5" class="w-full">
-                            <span id="melodySpeedValue" class="text-xs text-cyan-400 w-12 text-right">5.0s</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <!-- NEW: Dedicated Harmonic & Chords Layer -->
-            <div class="p-5 md:p-6 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-xl space-y-5">
-                <div class="flex items-center justify-between">
-                    <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
-                        <i data-lucide="layers" class="w-4 h-4 text-emerald-400"></i> Harmonic & Chords Layer
-                    </h2>
-                    <label class="relative inline-flex items-center cursor-pointer">
-                        <input type="checkbox" id="chordToggle" class="sr-only peer" checked>
-                        <div class="w-11 h-6 bg-slate-700 peer-focus:outline-none rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-emerald-500"></div>
-                    </label>
-                </div>
-
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    <!-- Chord Progression Selection -->
-                    <div>
-                        <label class="block text-xs text-slate-400 mb-2">Chord Progression</label>
-                        <select id="progressionSelect" class="w-full bg-slate-950/80 border border-white/10 rounded-xl px-3 py-2.5 text-sm text-slate-200 focus:outline-none focus:border-emerald-500 transition-colors">
-                            <option value="celestial">Celestial Journey (Maj7 / min9 / add9)</option>
-                            <option value="ethereal">Ethereal Sus (sus2 / sus4 / Maj7)</option>
-                            <option value="deepSpace">Deep Space Drift (min9 / min11)</option>
-                            <option value="warmSun">Warm Sunrise (Maj7 / add9 / 6/9)</option>
+                        <label class="text-xs text-slate-400 block mb-1">Solfeggio Reference Pitch</label>
+                        <select id="solfeggioSelect" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                            <option value="none">None</option>
+                            <option value="174">174 Hz (Pain Relief)</option>
+                            <option value="432">432 Hz (Natural Frequency)</option>
+                            <option value="528">528 Hz (Transformation / Miracle)</option>
+                            <option value="639">639 Hz (Harmonic Relationships)</option>
                         </select>
                     </div>
 
-                    <!-- Morph Speed / Transition Time -->
                     <div>
-                        <label class="block text-xs text-slate-400 mb-2">Chord Transition Morph Speed</label>
-                        <div class="flex items-center gap-3">
-                            <input type="range" id="chordMorphSpeed" min="8" max="32" step="2" value="16" class="w-full">
-                            <span id="chordMorphSpeedValue" class="text-xs text-emerald-400 w-12 text-right">16s</span>
+                        <div class="flex justify-between text-xs text-slate-400 mb-1">
+                            <span>Tone Volume</span>
+                            <span id="toneVolVal">0.2</span>
                         </div>
+                        <input type="range" id="toneVolume" min="0" max="1" step="0.01" value="0.2" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
                     </div>
                 </div>
 
-                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 pt-2 border-t border-white/5">
-                    <!-- Chord Pad Volume -->
-                    <div>
-                        <div class="flex justify-between text-xs text-slate-300 mb-2">
-                            <span>Chord Progression Pad Volume</span>
-                            <span id="chordVolVal" class="text-emerald-400">40%</span>
+                <!-- NEW: Melodic Lead Engine -->
+                <div class="border-t border-slate-800 pt-4 mt-2">
+                    <h3 class="text-xs font-semibold tracking-wider text-blue-400 uppercase mb-3">Melodic Lead Engine</h3>
+                    <div class="flex flex-col gap-3">
+                        <div>
+                            <label class="text-xs text-slate-400 block mb-1">Lead Timbre Preset</label>
+                            <select id="leadTimbreSelect" class="w-full bg-slate-800 border border-slate-700 text-xs text-slate-200 rounded-lg px-3 py-2 focus:outline-none focus:border-blue-500">
+                                <option value="glass">Glass Chime (FM Crystal)</option>
+                                <option value="flute">Soft Flute (Triangle Pure)</option>
+                                <option value="keys">Warm Electric Keys</option>
+                                <option value="kalimba">Plucked Kalimba</option>
+                            </select>
                         </div>
-                        <input type="range" id="chordVolume" min="0" max="1" step="0.01" value="0.4" class="w-full">
-                    </div>
-
-                    <!-- FM Bells / Chimes Volume -->
-                    <div>
-                        <div class="flex justify-between text-xs text-slate-300 mb-2">
-                            <span>FM Bell & Chime Counterpoint</span>
-                            <span id="chimeVolVal" class="text-emerald-400">30%</span>
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Lead Volume</span>
+                                <span id="leadVolVal">0.3</span>
+                            </div>
+                            <input type="range" id="leadVolume" min="0" max="1" step="0.01" value="0.3" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
                         </div>
-                        <input type="range" id="chimeVolume" min="0" max="1" step="0.01" value="0.3" class="w-full">
+                        <div>
+                            <div class="flex justify-between text-xs text-slate-400 mb-1">
+                                <span>Melody Pace / Rhythm</span>
+                                <span id="leadSpeedVal">Medium</span>
+                            </div>
+                            <input type="range" id="leadSpeed" min="1" max="5" step="1" value="3" class="w-full h-1.5 bg-slate-700 rounded-lg appearance-none cursor-pointer">
+                        </div>
                     </div>
                 </div>
             </div>
-
-        </div>
-
-        <!-- Right Column: Sound Channel Mixer (Pads, Drones, Textures, Solfeggio) -->
-        <div class="lg:col-span-5 flex flex-col gap-6">
-            
-            <div class="p-5 md:p-6 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-xl flex-1 space-y-6">
-                <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
-                    <i data-lucide="music" class="w-4 h-4 text-cyan-400"></i> Sound Layer Mixer
-                </h2>
-
-                <div class="space-y-5">
-                    
-                    <!-- Channel 1: Ambient Pad -->
-                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="cloud" class="w-4 h-4 text-cyan-400"></i>
-                                <span class="text-sm font-medium text-slate-200">FM Ambient Pad</span>
-                            </div>
-                            <span id="padVolVal" class="text-xs text-cyan-400">60%</span>
-                        </div>
-                        <input type="range" id="padVolume" min="0" max="1" step="0.01" value="0.6" class="w-full">
-                    </div>
-
-                    <!-- Channel 2: Sub-Bass Drone -->
-                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="disc" class="w-4 h-4 text-indigo-400"></i>
-                                <span class="text-sm font-medium text-slate-200">Sub-Bass Drone (108 Hz)</span>
-                            </div>
-                            <span id="droneVolVal" class="text-xs text-indigo-400">50%</span>
-                        </div>
-                        <input type="range" id="droneVolume" min="0" max="1" step="0.01" value="0.5" class="w-full">
-                    </div>
-
-                    <!-- Channel 3: Rain / Ocean Texture -->
-                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="cloud-rain" class="w-4 h-4 text-blue-400"></i>
-                                <span class="text-sm font-medium text-slate-200">Rain & Ocean (Pink Noise)</span>
-                            </div>
-                            <span id="rainVolVal" class="text-xs text-blue-400">30%</span>
-                        </div>
-                        <input type="range" id="rainVolume" min="0" max="1" step="0.01" value="0.3" class="w-full">
-                    </div>
-
-                    <!-- Channel 4: Wind Texture -->
-                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="wind" class="w-4 h-4 text-teal-400"></i>
-                                <span class="text-sm font-medium text-slate-200">Wind Breeze (Brown Noise)</span>
-                            </div>
-                            <span id="windVolVal" class="text-xs text-teal-400">20%</span>
-                        </div>
-                        <input type="range" id="windVolume" min="0" max="1" step="0.01" value="0.2" class="w-full">
-                    </div>
-
-                    <!-- Channel 5: Solfeggio / Binaural Tones -->
-                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="zap" class="w-4 h-4 text-amber-400"></i>
-                                <span class="text-sm font-medium text-slate-200">Solfeggio / Binaural Tone</span>
-                            </div>
-                            <span id="binauralVolVal" class="text-xs text-amber-400">15%</span>
-                        </div>
-                        <div class="grid grid-cols-2 gap-3 mb-2">
-                            <select id="binauralFreqSelect" class="bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-300">
-                                <option value="432">432 Hz - Natural Harmony</option>
-                                <option value="528">528 Hz - Transformation</option>
-                                <option value="174">174 Hz - Natural Anesthetic</option>
-                                <option value="639">639 Hz - Connection</option>
-                            </select>
-                            <select id="binauralBeatSelect" class="bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-300">
-                                <option value="4">Theta 4Hz (Meditation)</option>
-                                <option value="7.83">Schumann 7.83Hz (Earth)</option>
-                                <option value="10">Alpha 10Hz (Relaxation)</option>
-                                <option value="0.5">Delta 0.5Hz (Drowsiness)</option>
-                            </select>
-                        </div>
-                        <input type="range" id="binauralVolume" min="0" max="1" step="0.01" value="0.15" class="w-full">
-                    </div>
-
-                </div>
-            </div>
-
-        </div>
-
+        </section>
     </main>
 
     <!-- Footer -->
-    <footer class="w-full p-4 border-t border-white/5 text-center text-xs text-slate-500 bg-slate-950/80 backdrop-blur-md z-10">
-        Reference Tuning: A4 = 432Hz • Generated purely via Web Audio API
+    <footer class="w-full max-w-5xl text-center text-xs text-slate-500 py-4 border-t border-slate-900">
+        Aura 432 Ambient Generator — Open Source Project licensed under AGPL v3.0
     </footer>
 
+    <!-- Audio & Canvas Logic -->
     <script>
-        // Initialize Lucide icons
-        lucide.createIcons();
-
-        /* ===================================================================
-           432 HZ SYNTHESIZER AUDIO ENGINE (Web Audio API)
-           =================================================================== */
-
-        class Engine432 {
-            constructor() {
-                this.ctx = null;
-                this.isEngineRunning = false;
-                this.a4Freq = 432.00;
-
-                // Main control nodes
-                this.masterGain = null;
-                this.masterFilter = null;
-                this.analyser = null;
-
-                // Spatial Reverb/Cross-Delay Effect
-                this.reverbGain = null;
-                this.delayL = null;
-                this.delayR = null;
-
-                // Individual Channel Gain Nodes
-                this.padGainNode = null;
-                this.droneGainNode = null;
-                this.rainGainNode = null;
-                this.windGainNode = null;
-                this.binauralGainNode = null;
-
-                // NEW: Harmonic & Chords Gain Nodes
-                this.chordGainNode = null;
-                this.chimeGainNode = null;
-
-                // Active Oscillators and Sources
-                this.droneOscs = [];
-                this.binauralOscs = [];
-                this.rainSource = null;
-                this.windSource = null;
-
-                // Active Chord Nodes for Crossfading
-                this.activeChordNodes = [];
-                this.chordTimer = null;
-                this.currentChordIndex = 0;
-
-                // Melodic & Chime Generators
-                this.melodyTimer = null;
-                this.chimeTimer = null;
-
-                this.scales = {
-                    pentatonic: [0, 2, 4, 7, 9, 12, 14, 16, 19, 21],
-                    aeolian: [0, 2, 3, 5, 7, 8, 10, 12, 14, 15],
-                    dorian: [0, 2, 3, 5, 7, 9, 10, 12, 14, 15],
-                    lydian: [0, 2, 4, 6, 7, 9, 11, 12, 14, 16],
-                    bhupali: [0, 2, 4, 7, 9, 12, 14, 16]
-                };
-
-                // Ambient Extended Chord Progressions (Semitones relative to A4 = 432Hz)
-                this.progressions = {
-                    celestial: [
-                        [-24, -12, -1, 4, 11],  // AMaj7 (A, C#, G#)
-                        [-22, -10, 2, 5, 12],   // Bmin9 (B, D, F#, C#)
-                        [-17, -5, 7, 11, 16],   // Eadd9 (E, B, D#, F#)
-                        [-19, -7, 5, 9, 14]     // DMaj7 (D, F#, C#, E)
-                    ],
-                    ethereal: [
-                        [-24, -12, -5, 2, 7],   // Asus2
-                        [-19, -7, 0, 5, 9],     // Dsus4
-                        [-17, -5, 2, 7, 11],    // Esus2
-                        [-21, -9, -2, 3, 10]    // F#min7
-                    ],
-                    deepSpace: [
-                        [-22, -10, -3, 2, 9],   // Bmin11
-                        [-17, -5, 2, 5, 12],    // Emin9
-                        [-19, -7, 0, 4, 11],    // DMaj7
-                        [-24, -12, -5, 0, 7]    // Amin9
-                    ],
-                    warmSun: [
-                        [-19, -7, 5, 9, 14],    // DMaj7
-                        [-17, -5, 7, 11, 16],   // Eadd9
-                        [-24, -12, 0, 4, 9],    // A6/9
-                        [-21, -9, 3, 8, 13]     // F#min9
-                    ]
-                };
-            }
-
-            init() {
-                if (this.ctx) return;
-
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                this.ctx = new AudioCtx();
-
-                // 1. Visualizer Analyser
-                this.analyser = this.ctx.createAnalyser();
-                this.analyser.fftSize = 512;
-                this.analyser.smoothingTimeConstant = 0.85;
-
-                // 2. Master Gain
-                this.masterGain = this.ctx.createGain();
-                this.masterGain.gain.setValueAtTime(0.7, this.ctx.currentTime);
-
-                // 3. Cutoff Master Filter
-                this.masterFilter = this.ctx.createBiquadFilter();
-                this.masterFilter.type = "lowpass";
-                this.masterFilter.frequency.setValueAtTime(1200, this.ctx.currentTime);
-
-                // Master -> Analyser -> Output connection
-                this.masterGain.connect(this.masterFilter);
-                this.masterFilter.connect(this.analyser);
-                this.analyser.connect(this.ctx.destination);
-
-                // 4. Setup Spatial Reverb/Delay Effect Network
-                this.setupSpatialReverb();
-
-                // 5. Setup Mixer Channels
-                this.setupMixerChannels();
-
-                // 6. Start continuous generators
-                this.startSubDrone();
-                this.startRainNoise();
-                this.startWindNoise();
-                this.startBinauralTones();
-
-                // 7. Start Melodic & Chord Sequencers
-                this.startMelodyGenerator();
-                this.startChordProgression();
-                this.startChimeGenerator();
-
-                this.isEngineRunning = true;
-            }
-
-            // Calculate frequency based on A4 = 432 Hz
-            getPitch432(semitoneFromA4) {
-                return this.a4Freq * Math.pow(2, semitoneFromA4 / 12);
-            }
-
-            setupSpatialReverb() {
-                this.reverbGain = this.ctx.createGain();
-                this.reverbGain.gain.setValueAtTime(0.6, this.ctx.currentTime);
-
-                this.delayL = this.ctx.createDelay();
-                this.delayR = this.ctx.createDelay();
-                
-                this.delayL.delayTime.setValueAtTime(0.35, this.ctx.currentTime); // 350ms
-                this.delayR.delayTime.setValueAtTime(0.50, this.ctx.currentTime); // 500ms
-
-                const feedbackL = this.ctx.createGain();
-                const feedbackR = this.ctx.createGain();
-                feedbackL.gain.setValueAtTime(0.45, this.ctx.currentTime);
-                feedbackR.gain.setValueAtTime(0.45, this.ctx.currentTime);
-
-                const filterL = this.ctx.createBiquadFilter();
-                const filterR = this.ctx.createBiquadFilter();
-                filterL.type = "lowpass"; filterL.frequency.setValueAtTime(1500, this.ctx.currentTime);
-                filterR.type = "lowpass"; filterR.frequency.setValueAtTime(1200, this.ctx.currentTime);
-
-                // Cross connection (Left <-> Right)
-                this.reverbGain.connect(this.delayL);
-                this.reverbGain.connect(this.delayR);
-
-                this.delayL.connect(filterL);
-                filterL.connect(feedbackL);
-                feedbackL.connect(this.delayR);
-
-                this.delayR.connect(filterR);
-                filterR.connect(feedbackR);
-                feedbackR.connect(this.delayL);
-
-                filterL.connect(this.masterGain);
-                filterR.connect(this.masterGain);
-            }
-
-            setupMixerChannels() {
-                // Pad gain
-                this.padGainNode = this.ctx.createGain();
-                this.padGainNode.gain.setValueAtTime(0.6, this.ctx.currentTime);
-                this.padGainNode.connect(this.masterGain);
-                this.padGainNode.connect(this.reverbGain);
-
-                // Drone gain
-                this.droneGainNode = this.ctx.createGain();
-                this.droneGainNode.gain.setValueAtTime(0.5, this.ctx.currentTime);
-                this.droneGainNode.connect(this.masterGain);
-
-                // Rain gain
-                this.rainGainNode = this.ctx.createGain();
-                this.rainGainNode.gain.setValueAtTime(0.3, this.ctx.currentTime);
-                this.rainGainNode.connect(this.masterGain);
-
-                // Wind gain
-                this.windGainNode = this.ctx.createGain();
-                this.windGainNode.gain.setValueAtTime(0.2, this.ctx.currentTime);
-                this.windGainNode.connect(this.masterGain);
-
-                // Binaural gain
-                this.binauralGainNode = this.ctx.createGain();
-                this.binauralGainNode.gain.setValueAtTime(0.15, this.ctx.currentTime);
-                this.binauralGainNode.connect(this.masterGain);
-
-                // Chord Progression Pad gain
-                this.chordGainNode = this.ctx.createGain();
-                this.chordGainNode.gain.setValueAtTime(0.4, this.ctx.currentTime);
-                this.chordGainNode.connect(this.masterGain);
-                this.chordGainNode.connect(this.reverbGain);
-
-                // FM Chimes / Bells gain
-                this.chimeGainNode = this.ctx.createGain();
-                this.chimeGainNode.gain.setValueAtTime(0.3, this.ctx.currentTime);
-                this.chimeGainNode.connect(this.masterGain);
-                this.chimeGainNode.connect(this.reverbGain);
-            }
-
-            // --- LAYER 1: SUB-BASS DRONE ---
-            startSubDrone() {
-                const baseFreq = this.a4Freq / 4; // 108 Hz
-                const subFreq = baseFreq / 2;    // 54 Hz
-
-                const freqs = [subFreq, baseFreq, baseFreq * 1.5];
-                
-                freqs.forEach((f, idx) => {
-                    const osc = this.ctx.createOscillator();
-                    const oscGain = this.ctx.createGain();
-                    
-                    osc.type = idx === 0 ? 'sine' : 'triangle';
-                    osc.frequency.setValueAtTime(f, this.ctx.currentTime);
-
-                    const lfo = this.ctx.createOscillator();
-                    const lfoGain = this.ctx.createGain();
-                    lfo.frequency.setValueAtTime(0.05 + idx * 0.02, this.ctx.currentTime);
-                    lfoGain.gain.setValueAtTime(0.5, this.ctx.currentTime);
-                    lfo.connect(osc.frequency);
-                    lfo.start();
-
-                    oscGain.gain.setValueAtTime(0.25 / (idx + 1), this.ctx.currentTime);
-                    osc.connect(oscGain);
-                    oscGain.connect(this.droneGainNode);
-                    osc.start();
-
-                    this.droneOscs.push(osc);
-                });
-            }
-
-            // --- LAYER 2: PINK NOISE (RAIN / OCEAN SIMULATOR) ---
-            startRainNoise() {
-                const bufferSize = 2 * this.ctx.sampleRate;
-                const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-                const output = noiseBuffer.getChannelData(0);
-
-                let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
-                for (let i = 0; i < bufferSize; i++) {
-                    const white = Math.random() * 2 - 1;
-                    b0 = 0.99886 * b0 + white * 0.0555179;
-                    b1 = 0.99332 * b1 + white * 0.0750759;
-                    b2 = 0.96900 * b2 + white * 0.1538520;
-                    b3 = 0.86650 * b3 + white * 0.3104856;
-                    b4 = 0.55000 * b4 + white * 0.5329522;
-                    b5 = -0.7616 * b5 - white * 0.0168980;
-                    output[i] = b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362;
-                    output[i] *= 0.05;
-                    b6 = white * 0.115926;
-                }
-
-                this.rainSource = this.ctx.createBufferSource();
-                this.rainSource.buffer = noiseBuffer;
-                this.rainSource.loop = true;
-
-                const rainFilter = this.ctx.createBiquadFilter();
-                rainFilter.type = "lowpass";
-                rainFilter.frequency.setValueAtTime(800, this.ctx.currentTime);
-
-                const waveLfo = this.ctx.createOscillator();
-                const waveGain = this.ctx.createGain();
-                waveLfo.frequency.setValueAtTime(0.12, this.ctx.currentTime);
-                waveGain.gain.setValueAtTime(400, this.ctx.currentTime);
-                waveLfo.connect(waveGain);
-                waveGain.connect(rainFilter.frequency);
-                waveLfo.start();
-
-                this.rainSource.connect(rainFilter);
-                rainFilter.connect(this.rainGainNode);
-                this.rainSource.start();
-            }
-
-            // --- LAYER 3: BROWN NOISE (WIND BREEZE SIMULATOR) ---
-            startWindNoise() {
-                const bufferSize = 2 * this.ctx.sampleRate;
-                const noiseBuffer = this.ctx.createBuffer(1, bufferSize, this.ctx.sampleRate);
-                const output = noiseBuffer.getChannelData(0);
-                let lastOutput = 0.0;
-
-                for (let i = 0; i < bufferSize; i++) {
-                    const white = Math.random() * 2 - 1;
-                    output[i] = (lastOutput + (0.02 * white)) / 1.02;
-                    lastOutput = output[i];
-                    output[i] *= 3.5;
-                }
-
-                this.windSource = this.ctx.createBufferSource();
-                this.windSource.buffer = noiseBuffer;
-                this.windSource.loop = true;
-
-                const windFilter = this.ctx.createBiquadFilter();
-                windFilter.type = "bandpass";
-                windFilter.Q.setValueAtTime(3.0, this.ctx.currentTime);
-                windFilter.frequency.setValueAtTime(300, this.ctx.currentTime);
-
-                const windLfo = this.ctx.createOscillator();
-                const windGain = this.ctx.createGain();
-                windLfo.frequency.setValueAtTime(0.08, this.ctx.currentTime);
-                windGain.gain.setValueAtTime(250, this.ctx.currentTime);
-                windLfo.connect(windGain);
-                windGain.connect(windFilter.frequency);
-                windLfo.start();
-
-                this.windSource.connect(windFilter);
-                windFilter.connect(this.windGainNode);
-                this.windSource.start();
-            }
-
-            // --- LAYER 4: SOLFEGGIO & BINAURAL TONES ---
-            startBinauralTones() {
-                this.stopBinauralTones();
-
-                const baseFreq = parseFloat(document.getElementById('binauralFreqSelect').value);
-                const beatFreq = parseFloat(document.getElementById('binauralBeatSelect').value);
-
-                const merger = this.ctx.createChannelMerger(2);
-
-                const oscL = this.ctx.createOscillator();
-                const oscR = this.ctx.createOscillator();
-
-                oscL.type = 'sine';
-                oscR.type = 'sine';
-
-                oscL.frequency.setValueAtTime(baseFreq, this.ctx.currentTime);
-                oscR.frequency.setValueAtTime(baseFreq + beatFreq, this.ctx.currentTime);
-
-                oscL.connect(merger, 0, 0);
-                oscR.connect(merger, 0, 1);
-
-                merger.connect(this.binauralGainNode);
-
-                oscL.start();
-                oscR.start();
-
-                this.binauralOscs = [oscL, oscR];
-            }
-
-            stopBinauralTones() {
-                if (this.binauralOscs.length > 0) {
-                    this.binauralOscs.forEach(o => {
-                        try { o.stop(); } catch(e){}
-                    });
-                    this.binauralOscs = [];
-                }
-            }
-
-            // --- LAYER 5: GENERATIVE AMBIENT PAD NOTES ---
-            playAmbientNote() {
-                if (!this.isEngineRunning) return;
-
-                const isMelodyActive = document.getElementById('melodyToggle').checked;
-                if (!isMelodyActive) return;
-
-                const scaleName = document.getElementById('scaleSelect').value;
-                const scale = this.scales[scaleName] || this.scales.pentatonic;
-
-                const octaveOffset = (Math.floor(Math.random() * 3) - 1) * 12;
-                const randomInterval = scale[Math.floor(Math.random() * scale.length)];
-                const totalSemitones = randomInterval + octaveOffset - 12;
-                const noteFreq = this.getPitch432(totalSemitones);
-
-                const carrier = this.ctx.createOscillator();
-                const modulator = this.ctx.createOscillator();
-                const modGain = this.ctx.createGain();
-                const noteGain = this.ctx.createGain();
-
-                carrier.type = Math.random() > 0.5 ? 'sine' : 'triangle';
-                modulator.type = 'sine';
-
-                carrier.frequency.setValueAtTime(noteFreq, this.ctx.currentTime);
-                modulator.frequency.setValueAtTime(noteFreq * 2.001, this.ctx.currentTime);
-                modGain.gain.setValueAtTime(noteFreq * 0.3, this.ctx.currentTime);
-
-                modulator.connect(modGain);
-                modGain.connect(carrier.frequency);
-
-                const now = this.ctx.currentTime;
-                const attack = 2.5 + Math.random() * 2;
-                const release = 4.0 + Math.random() * 3;
-                const peakVolume = 0.15 + Math.random() * 0.1;
-
-                noteGain.gain.setValueAtTime(0, now);
-                noteGain.gain.linearRampToValueAtTime(peakVolume, now + attack);
-                noteGain.gain.exponentialRampToValueAtTime(0.0001, now + attack + release);
-
-                const panner = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
-                if (panner) {
-                    panner.pan.setValueAtTime((Math.random() * 1.6) - 0.8, now);
-                    carrier.connect(panner);
-                    panner.connect(noteGain);
-                } else {
-                    carrier.connect(noteGain);
-                }
-
-                noteGain.connect(this.padGainNode);
-
-                carrier.start(now);
-                modulator.start(now);
-
-                const totalDuration = (attack + release) * 1000;
-                setTimeout(() => {
-                    try {
-                        carrier.stop();
-                        modulator.stop();
-                        carrier.disconnect();
-                        modulator.disconnect();
-                    } catch(e){}
-                }, totalDuration + 200);
-            }
-
-            startMelodyGenerator() {
-                if (this.melodyTimer) clearInterval(this.melodyTimer);
-                
-                const triggerNext = () => {
-                    this.playAmbientNote();
-                    const speed = parseFloat(document.getElementById('melodySpeed').value) * 1000;
-                    const nextInterval = speed * (0.7 + Math.random() * 0.6);
-                    this.melodyTimer = setTimeout(triggerNext, nextInterval);
-                };
-
-                triggerNext();
-            }
-
-            // --- NEW: HARMONIC CHORD PROGRESSION LAYER ---
-            morphToNextChord() {
-                if (!this.isEngineRunning) return;
-
-                const isChordActive = document.getElementById('chordToggle').checked;
-                if (!isChordActive) {
-                    this.fadeOutActiveChords(3.0);
-                    return;
-                }
-
-                const progKey = document.getElementById('progressionSelect').value;
-                const prog = this.progressions[progKey] || this.progressions.celestial;
-                
-                this.currentChordIndex = (this.currentChordIndex + 1) % prog.length;
-                const semitones = prog[this.currentChordIndex];
-
-                const morphDuration = parseFloat(document.getElementById('chordMorphSpeed').value);
-                const now = this.ctx.currentTime;
-
-                // Gently fade out old chord nodes
-                this.fadeOutActiveChords(morphDuration * 0.6);
-
-                // Build new chord layer
-                const newChordNodes = [];
-                const chordMasterGain = this.ctx.createGain();
-                chordMasterGain.gain.setValueAtTime(0, now);
-                chordMasterGain.gain.linearRampToValueAtTime(0.18, now + (morphDuration * 0.4));
-
-                semitones.forEach((st) => {
-                    const freq = this.getPitch432(st);
-                    const osc = this.ctx.createOscillator();
-                    const filter = this.ctx.createBiquadFilter();
-
-                    osc.type = 'sine';
-                    osc.frequency.setValueAtTime(freq, now);
-
-                    // Soft warm low-pass filter
-                    filter.type = 'lowpass';
-                    filter.frequency.setValueAtTime(600, now);
-
-                    osc.connect(filter);
-                    filter.connect(chordMasterGain);
-                    osc.start(now);
-
-                    newChordNodes.push({ osc, filter, chordMasterGain });
-                });
-
-                chordMasterGain.connect(this.chordGainNode);
-                this.activeChordNodes.push({ nodes: newChordNodes, masterGain: chordMasterGain });
-            }
-
-            fadeOutActiveChords(fadeDuration) {
-                const now = this.ctx.currentTime;
-                this.activeChordNodes.forEach((item) => {
-                    try {
-                        item.masterGain.gain.cancelScheduledValues(now);
-                        item.masterGain.gain.setValueAtTime(item.masterGain.gain.value, now);
-                        item.masterGain.gain.exponentialRampToValueAtTime(0.0001, now + fadeDuration);
-                        setTimeout(() => {
-                            item.nodes.forEach(n => {
-                                try { n.osc.stop(); n.osc.disconnect(); } catch(e){}
-                            });
-                        }, (fadeDuration + 0.5) * 1000);
-                    } catch(e){}
-                });
-                this.activeChordNodes = [];
-            }
-
-            startChordProgression() {
-                if (this.chordTimer) clearInterval(this.chordTimer);
-
-                const step = () => {
-                    this.morphToNextChord();
-                    const morphDuration = parseFloat(document.getElementById('chordMorphSpeed').value) * 1000;
-                    this.chordTimer = setTimeout(step, morphDuration);
-                };
-
-                step();
-            }
-
-            // --- NEW: FM BELL & CHIME COUNTERPOINT GENERATOR ---
-            playChimeSound() {
-                if (!this.isEngineRunning) return;
-
-                const isChordActive = document.getElementById('chordToggle').checked;
-                if (!isChordActive) return;
-
-                const progKey = document.getElementById('progressionSelect').value;
-                const prog = this.progressions[progKey] || this.progressions.celestial;
-                const currentChord = prog[this.currentChordIndex];
-                
-                // Select a high pitch note from the current chord
-                const rootST = currentChord[Math.floor(Math.random() * currentChord.length)];
-                const chimeST = rootST + 24; // Transpose 2 octaves up
-                const freq = this.getPitch432(chimeST);
-
-                const now = this.ctx.currentTime;
-                const carrier = this.ctx.createOscillator();
-                const modulator = this.ctx.createOscillator();
-                const modGain = this.ctx.createGain();
-                const envGain = this.ctx.createGain();
-
-                // Metallic FM synthesis parameters
-                carrier.type = 'sine';
-                modulator.type = 'sine';
-
-                carrier.frequency.setValueAtTime(freq, now);
-                modulator.frequency.setValueAtTime(freq * 3.5, now); // Inharmonic FM ratio
-                modGain.gain.setValueAtTime(freq * 1.2, now);
-
-                modulator.connect(modGain);
-                modGain.connect(carrier.frequency);
-
-                // Quick attack, long metallic chime decay
-                envGain.gain.setValueAtTime(0, now);
-                envGain.gain.linearRampToValueAtTime(0.2, now + 0.02);
-                envGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.0);
-
-                const panner = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
-                if (panner) {
-                    panner.pan.setValueAtTime((Math.random() * 1.8) - 0.9, now);
-                    carrier.connect(panner);
-                    panner.connect(envGain);
-                } else {
-                    carrier.connect(envGain);
-                }
-
-                envGain.connect(this.chimeGainNode);
-
-                carrier.start(now);
-                modulator.start(now);
-
-                setTimeout(() => {
-                    try { carrier.stop(); modulator.stop(); } catch(e){}
-                }, 5200);
-            }
-
-            startChimeGenerator() {
-                if (this.chimeTimer) clearInterval(this.chimeTimer);
-
-                const trigger = () => {
-                    if (Math.random() > 0.3) {
-                        this.playChimeSound();
-                    }
-                    const interval = (6 + Math.random() * 8) * 1000;
-                    this.chimeTimer = setTimeout(trigger, interval);
-                };
-
-                trigger();
-            }
-
-            async togglePlay() {
-                if (!this.ctx) {
-                    this.init();
-                    return true;
-                }
-
-                if (this.ctx.state === 'suspended') {
-                    await this.ctx.resume();
-                    this.isEngineRunning = true;
-                    return true;
-                } else if (this.ctx.state === 'running') {
-                    await this.ctx.suspend();
-                    this.isEngineRunning = false;
-                    return false;
-                }
-            }
+        // Web Audio API State
+        let audioCtx = null;
+        let masterGain = null;
+        let analyser = null;
+
+        // Sound Nodes
+        let droneOsc1 = null, droneOsc2 = null, droneGain = null;
+        let rainNode = null, rainGain = null;
+        let windNode = null, windGain = null;
+        let binauralLeft = null, binauralRight = null, binauralGain = null;
+        let solfeggioOsc = null, solfeggioGain = null;
+        let chordGain = null, chimeGain = null;
+        let leadGain = null;
+
+        // Intervals & Loops
+        let arpInterval = null;
+        let chordInterval = null;
+        let leadInterval = null;
+        let isPlaying = false;
+
+        // 432 Hz Tuned Scales
+        const baseA4 = 432;
+        const scales = {
+            pentatonic: [0, 3, 5, 7, 10],     // Minor Pentatonic
+            aeolian: [0, 2, 3, 5, 7, 8, 10],  // Natural Minor
+            dorian: [0, 2, 3, 5, 7, 9, 10],   // Dorian
+            lydian: [0, 2, 4, 6, 7, 9, 11],   // Lydian
+            bhupali: [0, 2, 4, 7, 9]          // Raga Bhupali
+        };
+
+        const chordProgressions = {
+            atmospheric: [[0, 7, 11, 14], [7, 11, 14, 18], [9, 12, 16, 19], [5, 9, 12, 16]],
+            modal: [[0, 3, 7, 10], [10, 14, 17, 22], [8, 12, 15, 19], [7, 10, 14, 17]],
+            susCycle: [[0, 2, 7, 9], [5, 7, 12, 14], [7, 9, 14, 16], [2, 4, 9, 11]],
+            harmonic: [[0, 3, 7, 11], [5, 8, 12, 15], [7, 10, 14, 17], [8, 11, 15, 19]],
+            ambientEther: [[0, 4, 7, 11, 14], [2, 6, 9, 13, 16], [9, 12, 16, 19], [5, 9, 12, 16]]
+        };
+
+        let currentChordIndex = 0;
+
+        function noteToFreq(semitonesFromA4) {
+            return baseA4 * Math.pow(2, semitonesFromA4 / 12);
         }
 
-        const audioEngine = new Engine432();
+        // Initialize Web Audio Engine
+        function initAudio() {
+            if (audioCtx) return;
 
-        /* ===================================================================
-           REACTIVE CANVAS VISUALIZER
-           =================================================================== */
+            const AudioContext = window.AudioContext || window.webkitAudioContext;
+            audioCtx = new AudioContext();
 
+            // Master Gain
+            masterGain = audioCtx.createGain();
+            masterGain.gain.setValueAtTime(parseFloat(document.getElementById('masterVolume').value), audioCtx.currentTime);
+
+            // Analyser for Canvas
+            analyser = audioCtx.createAnalyser();
+            analyser.fftSize = 128;
+
+            masterGain.connect(analyser);
+            analyser.connect(audioCtx.destination);
+
+            // Build Individual Sound Layers
+            setupDroneLayer();
+            setupNatureLayer();
+            setupToneLayers();
+            setupChordLayer();
+            setupLeadLayer();
+
+            // Start Generative Loops
+            startArpGenerator();
+            startChordGenerator();
+            startLeadGenerator();
+        }
+
+        // Drone Layer
+        function setupDroneLayer() {
+            droneGain = audioCtx.createGain();
+            droneGain.gain.setValueAtTime(parseFloat(document.getElementById('droneVolume').value), audioCtx.currentTime);
+
+            droneOsc1 = audioCtx.createOscillator();
+            droneOsc2 = audioCtx.createOscillator();
+
+            const filter = audioCtx.createBiquadFilter();
+            filter.type = 'lowpass';
+            filter.frequency.setValueAtTime(250, audioCtx.currentTime);
+
+            droneOsc1.type = 'sine';
+            droneOsc2.type = 'triangle';
+
+            droneOsc1.frequency.setValueAtTime(noteToFreq(-24), audioCtx.currentTime); // A2 (108 Hz)
+            droneOsc2.frequency.setValueAtTime(noteToFreq(-24.05), audioCtx.currentTime); // Slight detune
+
+            droneOsc1.connect(filter);
+            droneOsc2.connect(filter);
+            filter.connect(droneGain);
+            droneGain.connect(masterGain);
+
+            droneOsc1.start();
+            droneOsc2.start();
+        }
+
+        // Nature Layer (Noise Synthesis)
+        function setupNatureLayer() {
+            const bufferSize = audioCtx.sampleRate * 2;
+            const noiseBuffer = audioCtx.createBuffer(1, bufferSize, audioCtx.sampleRate);
+            const output = noiseBuffer.getChannelData(0);
+
+            let lastOut = 0.0;
+            for (let i = 0; i < bufferSize; i++) {
+                const white = Math.random() * 2 - 1;
+                output[i] = (lastOut + (0.02 * white)) / 1.02; // Brown noise approximation
+                lastOut = output[i];
+            }
+
+            // Rain Generator
+            rainNode = audioCtx.createBufferSource();
+            rainNode.buffer = noiseBuffer;
+            rainNode.loop = true;
+
+            const rainFilter = audioCtx.createBiquadFilter();
+            rainFilter.type = 'bandpass';
+            rainFilter.frequency.setValueAtTime(1000, audioCtx.currentTime);
+            rainFilter.Q.setValueAtTime(0.5, audioCtx.currentTime);
+
+            rainGain = audioCtx.createGain();
+            rainGain.gain.setValueAtTime(parseFloat(document.getElementById('rainVolume').value) * 0.3, audioCtx.currentTime);
+
+            rainNode.connect(rainFilter);
+            rainFilter.connect(rainGain);
+            rainGain.connect(masterGain);
+            rainNode.start();
+
+            // Wind Generator
+            windNode = audioCtx.createBufferSource();
+            windNode.buffer = noiseBuffer;
+            windNode.loop = true;
+
+            const windFilter = audioCtx.createBiquadFilter();
+            windFilter.type = 'lowpass';
+            windFilter.frequency.setValueAtTime(400, audioCtx.currentTime);
+
+            windGain = audioCtx.createGain();
+            windGain.gain.setValueAtTime(parseFloat(document.getElementById('windVolume').value) * 0.4, audioCtx.currentTime);
+
+            windNode.connect(windFilter);
+            windFilter.connect(windGain);
+            windGain.connect(masterGain);
+            windNode.start();
+        }
+
+        // Solfeggio & Binaural Setup
+        function setupToneLayers() {
+            binauralGain = audioCtx.createGain();
+            binauralGain.gain.setValueAtTime(parseFloat(document.getElementById('toneVolume').value), audioCtx.currentTime);
+
+            const merger = audioCtx.createChannelMerger(2);
+
+            binauralLeft = audioCtx.createOscillator();
+            binauralRight = audioCtx.createOscillator();
+
+            binauralLeft.type = 'sine';
+            binauralRight.type = 'sine';
+
+            binauralLeft.connect(merger, 0, 0);
+            binauralRight.connect(merger, 0, 1);
+            merger.connect(binauralGain);
+            binauralGain.connect(masterGain);
+
+            binauralLeft.start();
+            binauralRight.start();
+
+            updateBinauralFrequency();
+
+            solfeggioGain = audioCtx.createGain();
+            solfeggioGain.gain.setValueAtTime(0, audioCtx.currentTime);
+
+            solfeggioOsc = audioCtx.createOscillator();
+            solfeggioOsc.type = 'sine';
+            solfeggioOsc.connect(solfeggioGain);
+            solfeggioGain.connect(masterGain);
+            solfeggioOsc.start();
+
+            updateSolfeggioFrequency();
+        }
+
+        function updateBinauralFrequency() {
+            if (!audioCtx) return;
+            const val = document.getElementById('binauralSelect').value;
+            const baseFreq = 216; // A3
+
+            if (val === 'none') {
+                binauralLeft.frequency.setValueAtTime(0, audioCtx.currentTime);
+                binauralRight.frequency.setValueAtTime(0, audioCtx.currentTime);
+                return;
+            }
+
+            let diff = 0;
+            if (val === 'delta') diff = 2.0;
+            if (val === 'theta') diff = 6.0;
+            if (val === 'alpha') diff = 10.0;
+            if (val === 'beta') diff = 18.0;
+
+            binauralLeft.frequency.setValueAtTime(baseFreq, audioCtx.currentTime);
+            binauralRight.frequency.setValueAtTime(baseFreq + diff, audioCtx.currentTime);
+        }
+
+        function updateSolfeggioFrequency() {
+            if (!audioCtx) return;
+            const val = document.getElementById('solfeggioSelect').value;
+
+            if (val === 'none') {
+                solfeggioGain.gain.setValueAtTime(0, audioCtx.currentTime);
+                return;
+            }
+
+            const freq = parseFloat(val);
+            solfeggioOsc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+            solfeggioGain.gain.setValueAtTime(parseFloat(document.getElementById('toneVolume').value) * 0.3, audioCtx.currentTime);
+        }
+
+        // Chord Layer Setup
+        function setupChordLayer() {
+            chordGain = audioCtx.createGain();
+            chordGain.gain.setValueAtTime(parseFloat(document.getElementById('chordVolume').value), audioCtx.currentTime);
+            chordGain.connect(masterGain);
+
+            chimeGain = audioCtx.createGain();
+            chimeGain.gain.setValueAtTime(parseFloat(document.getElementById('chimeVolume').value), audioCtx.currentTime);
+            chimeGain.connect(masterGain);
+        }
+
+        // Lead Layer Setup
+        function setupLeadLayer() {
+            leadGain = audioCtx.createGain();
+            leadGain.gain.setValueAtTime(parseFloat(document.getElementById('leadVolume').value), audioCtx.currentTime);
+            leadGain.connect(masterGain);
+        }
+
+        // Generative Random Arps
+        function startArpGenerator() {
+            if (arpInterval) clearInterval(arpInterval);
+
+            arpInterval = setInterval(() => {
+                if (!audioCtx || !isPlaying) return;
+
+                const density = parseInt(document.getElementById('densitySlider').value);
+                if (Math.random() > (density / 10)) return;
+
+                const scaleName = document.getElementById('scaleSelect').value;
+                const scale = scales[scaleName];
+                const octaves = parseInt(document.getElementById('octaveSlider').value);
+
+                const randomDegree = scale[Math.floor(Math.random() * scale.length)];
+                const randomOctave = Math.floor(Math.random() * octaves);
+                const semitones = randomDegree + (randomOctave * 12) - 12;
+
+                const freq = noteToFreq(semitones);
+
+                const osc = audioCtx.createOscillator();
+                const noteGain = audioCtx.createGain();
+
+                osc.type = Math.random() > 0.5 ? 'sine' : 'triangle';
+                osc.frequency.setValueAtTime(freq, audioCtx.currentTime);
+
+                const now = audioCtx.currentTime;
+                const arpVol = parseFloat(document.getElementById('arpVolume').value);
+
+                noteGain.gain.setValueAtTime(0, now);
+                noteGain.gain.linearRampToValueAtTime(arpVol * 0.3, now + 1.5);
+                noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.0);
+
+                osc.connect(noteGain);
+                noteGain.connect(masterGain);
+
+                osc.start(now);
+                osc.stop(now + 5.1);
+            }, 800);
+        }
+
+        // Evolving Chord Generator
+        function startChordGenerator() {
+            if (chordInterval) clearInterval(chordInterval);
+
+            chordInterval = setInterval(() => {
+                if (!audioCtx || !isPlaying) return;
+
+                const progName = document.getElementById('chordProgSelect').value;
+                const prog = chordProgressions[progName];
+                const chordNotes = prog[currentChordIndex % prog.length];
+                currentChordIndex++;
+
+                const now = audioCtx.currentTime;
+                const morphSpeed = parseFloat(document.getElementById('chordMorphSpeed').value);
+
+                chordNotes.forEach((semitones, idx) => {
+                    const osc = audioCtx.createOscillator();
+                    const noteGain = audioCtx.createGain();
+
+                    osc.type = idx % 2 === 0 ? 'sine' : 'triangle';
+                    osc.frequency.setValueAtTime(noteToFreq(semitones - 24), now);
+
+                    noteGain.gain.setValueAtTime(0, now);
+                    noteGain.gain.linearRampToValueAtTime(0.08, now + (morphSpeed / 2));
+                    noteGain.gain.exponentialRampToValueAtTime(0.0001, now + morphSpeed);
+
+                    osc.connect(noteGain);
+                    noteGain.connect(chordGain);
+
+                    osc.start(now);
+                    osc.stop(now + morphSpeed + 0.1);
+                });
+
+                // Trigger Random Chime Counterpoint
+                if (Math.random() > 0.3) {
+                    triggerChime(chordNotes[Math.floor(Math.random() * chordNotes.length)] + 12);
+                }
+
+            }, 8000);
+        }
+
+        // High Frequency Chime Counterpoint
+        function triggerChime(semitones) {
+            const now = audioCtx.currentTime;
+            const carrier = audioCtx.createOscillator();
+            const modulator = audioCtx.createOscillator();
+            const modGain = audioCtx.createGain();
+            const noteGain = audioCtx.createGain();
+
+            const freq = noteToFreq(semitones);
+
+            carrier.frequency.setValueAtTime(freq, now);
+            modulator.frequency.setValueAtTime(freq * 1.5, now);
+            modGain.gain.setValueAtTime(freq * 0.5, now);
+
+            modulator.connect(modGain);
+            modGain.connect(carrier.frequency);
+
+            noteGain.gain.setValueAtTime(0, now);
+            noteGain.gain.linearRampToValueAtTime(0.15, now + 0.1);
+            noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 4.0);
+
+            carrier.connect(noteGain);
+            noteGain.connect(chimeGain);
+
+            carrier.start(now);
+            modulator.start(now);
+            carrier.stop(now + 4.1);
+            modulator.stop(now + 4.1);
+        }
+
+        // NEW: Melodic Lead Generator
+        function startLeadGenerator() {
+            if (leadInterval) clearInterval(leadInterval);
+
+            leadInterval = setInterval(() => {
+                if (!audioCtx || !isPlaying) return;
+
+                const speed = parseInt(document.getElementById('leadSpeed').value);
+                const prob = speed / 5;
+                if (Math.random() > prob) return;
+
+                const scaleName = document.getElementById('scaleSelect').value;
+                const scale = scales[scaleName];
+
+                // Focus lead on middle-high octaves
+                const randomDegree = scale[Math.floor(Math.random() * scale.length)];
+                const randomOctave = Math.random() > 0.5 ? 0 : 12; 
+                const semitones = randomDegree + randomOctave - 12;
+
+                triggerLeadNote(semitones);
+            }, 2000);
+        }
+
+        function triggerLeadNote(semitones) {
+            const now = audioCtx.currentTime;
+            const timbre = document.getElementById('leadTimbreSelect').value;
+            const freq = noteToFreq(semitones);
+
+            const osc = audioCtx.createOscillator();
+            const noteGain = audioCtx.createGain();
+
+            if (timbre === 'glass') {
+                osc.type = 'sine';
+                const mod = audioCtx.createOscillator();
+                const modG = audioCtx.createGain();
+                mod.frequency.setValueAtTime(freq * 2, now);
+                modG.gain.setValueAtTime(freq * 0.2, now);
+                mod.connect(modG);
+                modG.connect(osc.frequency);
+                mod.start(now);
+                mod.stop(now + 3.0);
+
+                noteGain.gain.setValueAtTime(0, now);
+                noteGain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+                noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+
+            } else if (timbre === 'flute') {
+                osc.type = 'triangle';
+                noteGain.gain.setValueAtTime(0, now);
+                noteGain.gain.linearRampToValueAtTime(0.25, now + 0.4);
+                noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+
+            } else if (timbre === 'keys') {
+                osc.type = 'sine';
+                noteGain.gain.setValueAtTime(0, now);
+                noteGain.gain.linearRampToValueAtTime(0.22, now + 0.1);
+                noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+
+            } else if (timbre === 'kalimba') {
+                osc.type = 'sine';
+                noteGain.gain.setValueAtTime(0, now);
+                noteGain.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+            }
+
+            osc.frequency.setValueAtTime(freq, now);
+            osc.connect(noteGain);
+            noteGain.connect(leadGain);
+
+            osc.start(now);
+            osc.stop(now + 3.5);
+        }
+
+        // Canvas Audio Visualizer
         const canvas = document.getElementById('visualizerCanvas');
-        const ctx2d = canvas.getContext('2d');
+        const ctx = canvas.getContext('2d');
 
         function resizeCanvas() {
-            canvas.width = canvas.parentElement.clientWidth;
-            canvas.height = canvas.parentElement.clientHeight;
+            canvas.width = canvas.offsetWidth;
+            canvas.height = canvas.offsetHeight;
         }
         window.addEventListener('resize', resizeCanvas);
         resizeCanvas();
 
-        const particles = Array.from({ length: 45 }, () => ({
-            x: Math.random() * canvas.width,
-            y: Math.random() * canvas.height,
-            radius: Math.random() * 3 + 1,
-            alpha: Math.random() * 0.5 + 0.2,
-            speedY: - (Math.random() * 0.4 + 0.1),
-            speedX: (Math.random() - 0.5) * 0.3
-        }));
-
         function drawVisualizer() {
             requestAnimationFrame(drawVisualizer);
 
-            ctx2d.clearRect(0, 0, canvas.width, canvas.height);
+            ctx.fillStyle = 'rgba(11, 15, 25, 0.2)';
+            ctx.fillRect(0, 0, canvas.width, canvas.height);
 
-            const bgGradient = ctx2d.createLinearGradient(0, 0, 0, canvas.height);
-            bgGradient.addColorStop(0, 'rgba(15, 23, 42, 0.9)');
-            bgGradient.addColorStop(1, 'rgba(10, 15, 30, 0.95)');
-            ctx2d.fillStyle = bgGradient;
-            ctx2d.fillRect(0, 0, canvas.width, canvas.height);
+            if (!analyser || !isPlaying) return;
 
-            if (!audioEngine.ctx || audioEngine.ctx.state !== 'running') {
-                drawParticles(0.2);
-                return;
-            }
-
-            const bufferLength = audioEngine.analyser.frequencyBinCount;
+            const bufferLength = analyser.frequencyBinCount;
             const dataArray = new Uint8Array(bufferLength);
-            audioEngine.analyser.getByteFrequencyData(dataArray);
+            analyser.getByteFrequencyData(dataArray);
 
-            let sum = 0;
-            for (let i = 0; i < bufferLength; i++) sum += dataArray[i];
-            const averageEnergy = sum / bufferLength;
+            ctx.lineWidth = 2;
+            ctx.strokeStyle = 'rgba(59, 130, 246, 0.6)';
+            ctx.beginPath();
 
-            drawParticles(averageEnergy / 100);
-
-            ctx2d.beginPath();
-            ctx2d.lineWidth = 2.5;
-            const waveGradient = ctx2d.createLinearGradient(0, 0, canvas.width, 0);
-            waveGradient.addColorStop(0, 'rgba(56, 189, 248, 0.8)');
-            waveGradient.addColorStop(0.5, 'rgba(129, 140, 248, 0.8)');
-            waveGradient.addColorStop(1, 'rgba(45, 212, 191, 0.8)');
-            ctx2d.strokeStyle = waveGradient;
-
-            const sliceWidth = canvas.width / (bufferLength / 2);
+            const sliceWidth = canvas.width * 1.0 / bufferLength;
             let x = 0;
-            const time = Date.now() * 0.0015;
 
-            for (let i = 0; i < bufferLength / 2; i++) {
-                const v = dataArray[i] / 255.0;
-                const amp = v * (canvas.height * 0.35);
-                const y = (canvas.height / 2) + Math.sin(i * 0.08 + time) * (amp + 10);
+            for (let i = 0; i < bufferLength; i++) {
+                const v = dataArray[i] / 128.0;
+                const y = (v * canvas.height / 3) + (canvas.height / 3);
 
                 if (i === 0) {
-                    ctx2d.moveTo(x, y);
+                    ctx.moveTo(x, y);
                 } else {
-                    ctx2d.lineTo(x, y);
+                    ctx.lineTo(x, y);
                 }
 
                 x += sliceWidth;
             }
 
-            ctx2d.stroke();
+            ctx.lineTo(canvas.width, canvas.height / 2);
+            ctx.stroke();
+
+            // Floating Ambient Particles
+            for (let i = 0; i < 15; i++) {
+                const val = dataArray[i * 4];
+                const radius = (val / 255) * 8 + 2;
+                const px = (i / 15) * canvas.width + Math.sin(Date.now() * 0.001 + i) * 20;
+                const py = (canvas.height / 2) + Math.cos(Date.now() * 0.001 + i) * 40;
+
+                ctx.beginPath();
+                ctx.arc(px, py, radius, 0, Math.PI * 2);
+                ctx.fillStyle = `rgba(147, 197, 253, ${val / 300})`;
+                ctx.fill();
+            }
         }
-
-        function drawParticles(energyFactor) {
-            particles.forEach(p => {
-                p.y += p.speedY * (1 + energyFactor);
-                p.x += p.speedX;
-
-                if (p.y < 0) {
-                    p.y = canvas.height + 10;
-                    p.x = Math.random() * canvas.width;
-                }
-                if (p.x < 0 || p.x > canvas.width) p.x = Math.random() * canvas.width;
-
-                ctx2d.beginPath();
-                ctx2d.arc(p.x, p.y, p.radius * (1 + energyFactor * 0.5), 0, Math.PI * 2);
-                ctx2d.fillStyle = `rgba(56, 189, 248, ${Math.min(1, p.alpha + energyFactor * 0.3)})`;
-                ctx2d.fill();
-            });
-        }
-
         drawVisualizer();
 
-        /* ===================================================================
-           INTERFACE & USER EVENT HANDLING
-           =================================================================== */
-
-        const mainPlayBtn = document.getElementById('mainPlayBtn');
-        const overlayStartBtn = document.getElementById('overlayStartBtn');
-        const canvasOverlay = document.getElementById('canvasOverlay');
-        const playIcon = document.getElementById('playIcon');
-        const playBtnText = document.getElementById('playBtnText');
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-
-        async function handlePlayToggle() {
-            const isPlaying = await audioEngine.togglePlay();
-
-            if (isPlaying) {
-                canvasOverlay.classList.add('opacity-0', 'pointer-events-none');
-                playIcon.setAttribute('data-lucide', 'pause');
-                playBtnText.textContent = "Pause Audio";
-                statusDot.className = "w-2 h-2 rounded-full bg-emerald-400 animate-pulse";
-                statusText.textContent = "A4 = 432.00 Hz (Running)";
-            } else {
-                canvasOverlay.classList.remove('opacity-0', 'pointer-events-none');
-                playIcon.setAttribute('data-lucide', 'play');
-                playBtnText.textContent = "Start Audio";
-                statusDot.className = "w-2 h-2 rounded-full bg-amber-400";
-                statusText.textContent = "A4 = 432.00 Hz (Paused)";
+        // Event Listeners
+        document.getElementById('startBtn').addEventListener('click', () => {
+            initAudio();
+            if (audioCtx.state === 'suspended') {
+                audioCtx.resume();
             }
-            lucide.createIcons();
-        }
+            isPlaying = true;
+            document.getElementById('startBtn').classList.add('hidden');
+            document.getElementById('stopBtn').classList.remove('hidden');
+            document.getElementById('overlayText').classList.add('hidden');
+        });
 
-        mainPlayBtn.addEventListener('click', handlePlayToggle);
-        overlayStartBtn.addEventListener('click', handlePlayToggle);
+        document.getElementById('stopBtn').addEventListener('click', () => {
+            if (audioCtx) {
+                audioCtx.suspend();
+            }
+            isPlaying = false;
+            document.getElementById('stopBtn').classList.add('hidden');
+            document.getElementById('startBtn').classList.remove('hidden');
+            document.getElementById('overlayText').classList.remove('hidden');
+            document.getElementById('overlayText').innerText = 'AUDIO PAUSED';
+        });
 
-        // Sliders & Controls Binding
+        // Dynamic Slider Listeners
         document.getElementById('masterVolume').addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            document.getElementById('masterVolValue').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.masterGain) audioEngine.masterGain.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
-        });
-
-        document.getElementById('filterCutoff').addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            document.getElementById('filterCutoffValue').textContent = `${val} Hz`;
-            if (audioEngine.masterFilter) audioEngine.masterFilter.frequency.setValueAtTime(val, audioEngine.ctx.currentTime);
-        });
-
-        document.getElementById('reverbMix').addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            document.getElementById('reverbMixValue').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.reverbGain) audioEngine.reverbGain.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
-        });
-
-        // Layer Mixer Controls
-        document.getElementById('padVolume').addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            document.getElementById('padVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.padGainNode) audioEngine.padGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            if (masterGain) masterGain.gain.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
         });
 
         document.getElementById('droneVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            document.getElementById('droneVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.droneGainNode) audioEngine.droneGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            document.getElementById('droneVolVal').innerText = val.toFixed(2);
+            if (droneGain) droneGain.gain.setValueAtTime(val, audioCtx.currentTime);
+        });
+
+        document.getElementById('arpVolume').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            document.getElementById('arpVolVal').innerText = val.toFixed(2);
         });
 
         document.getElementById('rainVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            document.getElementById('rainVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.rainGainNode) audioEngine.rainGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            document.getElementById('rainVolVal').innerText = val.toFixed(2);
+            if (rainGain) rainGain.gain.setValueAtTime(val * 0.3, audioCtx.currentTime);
         });
 
         document.getElementById('windVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            document.getElementById('windVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.windGainNode) audioEngine.windGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            document.getElementById('windVolVal').innerText = val.toFixed(2);
+            if (windGain) windGain.gain.setValueAtTime(val * 0.4, audioCtx.currentTime);
         });
 
-        document.getElementById('binauralVolume').addEventListener('input', (e) => {
+        document.getElementById('toneVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            document.getElementById('binauralVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.binauralGainNode) audioEngine.binauralGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            document.getElementById('toneVolVal').innerText = val.toFixed(2);
+            if (binauralGain) binauralGain.gain.setValueAtTime(val, audioCtx.currentTime);
+            updateSolfeggioFrequency();
         });
 
-        document.getElementById('melodySpeed').addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            document.getElementById('melodySpeedValue').textContent = `${val.toFixed(1)}s`;
-        });
+        document.getElementById('binauralSelect').addEventListener('change', updateBinauralFrequency);
+        document.getElementById('solfeggioSelect').addEventListener('change', updateSolfeggioFrequency);
 
-        // NEW: Harmonic Layer Controls
         document.getElementById('chordVolume').addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            document.getElementById('chordVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.chordGainNode) audioEngine.chordGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            if (chordGain) chordGain.gain.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
         });
 
         document.getElementById('chimeVolume').addEventListener('input', (e) => {
+            if (chimeGain) chimeGain.gain.setValueAtTime(parseFloat(e.target.value), audioCtx.currentTime);
+        });
+
+        document.getElementById('leadVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            document.getElementById('chimeVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.chimeGainNode) audioEngine.chimeGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            document.getElementById('leadVolVal').innerText = val.toFixed(2);
+            if (leadGain) leadGain.gain.setValueAtTime(val, audioCtx.currentTime);
         });
 
-        document.getElementById('chordMorphSpeed').addEventListener('input', (e) => {
-            const val = parseFloat(e.target.value);
-            document.getElementById('chordMorphSpeedValue').textContent = `${val}s`;
-            if (audioEngine.isEngineRunning) audioEngine.startChordProgression();
+        document.getElementById('leadSpeed').addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            const labels = ['Very Slow', 'Slow', 'Medium', 'Fast', 'Active'];
+            document.getElementById('leadSpeedVal').innerText = labels[val - 1];
+            startLeadGenerator();
         });
 
-        document.getElementById('progressionSelect').addEventListener('change', () => {
-            audioEngine.currentChordIndex = -1;
-            if (audioEngine.isEngineRunning) audioEngine.morphToNextChord();
-        });
+        // Presets Setup
+        document.getElementById('presetSelect').addEventListener('change', (e) => {
+            const preset = e.target.value;
+            if (preset === 'meditation') {
+                document.getElementById('droneVolume').value = 0.8;
+                document.getElementById('arpVolume').value = 0.1;
+                document.getElementById('rainVolume').value = 0.0;
+                document.getElementById('windVolume').value = 0.2;
+                document.getElementById('solfeggioSelect').value = '528';
+                document.getElementById('binauralSelect').value = 'theta';
+                document.getElementById('leadVolume').value = 0.1;
+            } else if (preset === 'rainyFocus') {
+                document.getElementById('droneVolume').value = 0.3;
+                document.getElementById('arpVolume').value = 0.5;
+                document.getElementById('rainVolume').value = 0.6;
+                document.getElementById('windVolume').value = 0.1;
+                document.getElementById('scaleSelect').value = 'pentatonic';
+                document.getElementById('solfeggioSelect').value = 'none';
+                document.getElementById('leadVolume').value = 0.2;
+            } else if (preset === 'cosmicDrift') {
+                document.getElementById('droneVolume').value = 0.6;
+                document.getElementById('arpVolume').value = 0.4;
+                document.getElementById('rainVolume').value = 0.0;
+                document.getElementById('windVolume').value = 0.4;
+                document.getElementById('scaleSelect').value = 'lydian';
+                document.getElementById('leadTimbreSelect').value = 'keys';
+                document.getElementById('leadVolume').value = 0.4;
+            } else if (preset === 'solfeggioHealing') {
+                document.getElementById('droneVolume').value = 0.4;
+                document.getElementById('arpVolume').value = 0.2;
+                document.getElementById('solfeggioSelect').value = '432';
+                document.getElementById('binauralSelect').value = 'alpha';
+                document.getElementById('leadVolume').value = 0.2;
+            }
 
-        document.getElementById('binauralFreqSelect').addEventListener('change', () => {
-            if (audioEngine.isEngineRunning) audioEngine.startBinauralTones();
+            // Trigger events to update gain nodes
+            document.getElementById('droneVolume').dispatchEvent(new Event('input'));
+            document.getElementById('arpVolume').dispatchEvent(new Event('input'));
+            document.getElementById('rainVolume').dispatchEvent(new Event('input'));
+            document.getElementById('windVolume').dispatchEvent(new Event('input'));
+            document.getElementById('toneVolume').dispatchEvent(new Event('input'));
+            document.getElementById('leadVolume').dispatchEvent(new Event('input'));
+            updateBinauralFrequency();
+            updateSolfeggioFrequency();
         });
-        document.getElementById('binauralBeatSelect').addEventListener('change', () => {
-            if (audioEngine.isEngineRunning) audioEngine.startBinauralTones();
-        });
-
     </script>
 </body>
 </html>
