@@ -242,31 +242,7 @@
 
                 <div class="space-y-5">
                     
-                    <!-- Channel 1: Ambient Pad -->
-                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="cloud" class="w-4 h-4 text-cyan-400"></i>
-                                <span class="text-sm font-medium text-slate-200">FM Ambient Pad</span>
-                            </div>
-                            <span id="padVolVal" class="text-xs text-cyan-400">60%</span>
-                        </div>
-                        <input type="range" id="padVolume" min="0" max="1" step="0.01" value="0.6" class="w-full">
-                    </div>
-
-                    <!-- Channel 2: Sub-Bass Drone -->
-                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
-                        <div class="flex items-center justify-between">
-                            <div class="flex items-center gap-2">
-                                <i data-lucide="disc" class="w-4 h-4 text-indigo-400"></i>
-                                <span class="text-sm font-medium text-slate-200">Sub-Bass Drone (108 Hz)</span>
-                            </div>
-                            <span id="droneVolVal" class="text-xs text-indigo-400">50%</span>
-                        </div>
-                        <input type="range" id="droneVolume" min="0" max="1" step="0.01" value="0.5" class="w-full">
-                    </div>
-
-                    <!-- Channel 3: Melodic Lead Engine (Pannello indipendente) -->
+                    <!-- Channel 1: Melodic Lead Engine (Posizionato in cima) -->
                     <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -308,6 +284,30 @@
                                 <input type="range" id="leadVolume" min="0" max="1" step="0.01" value="0.3" class="w-full mt-1">
                             </div>
                         </div>
+                    </div>
+
+                    <!-- Channel 2: Ambient Pad -->
+                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="cloud" class="w-4 h-4 text-cyan-400"></i>
+                                <span class="text-sm font-medium text-slate-200">FM Ambient Pad</span>
+                            </div>
+                            <span id="padVolVal" class="text-xs text-cyan-400">60%</span>
+                        </div>
+                        <input type="range" id="padVolume" min="0" max="1" step="0.01" value="0.6" class="w-full">
+                    </div>
+
+                    <!-- Channel 3: Sub-Bass Drone -->
+                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="disc" class="w-4 h-4 text-indigo-400"></i>
+                                <span class="text-sm font-medium text-slate-200">Sub-Bass Drone (108 Hz)</span>
+                            </div>
+                            <span id="droneVolVal" class="text-xs text-indigo-400">50%</span>
+                        </div>
+                        <input type="range" id="droneVolume" min="0" max="1" step="0.01" value="0.5" class="w-full">
                     </div>
 
                     <!-- Channel 4: Rain / Ocean Texture -->
@@ -363,6 +363,20 @@
                     </div>
 
                 </div>
+
+                <!-- Preset Manager Buttons (Save / Load) -->
+                <div class="pt-2 border-t border-white/10 grid grid-cols-2 gap-3">
+                    <button id="savePresetBtn" class="w-full py-2.5 px-4 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 border border-white/10 text-slate-200 text-xs font-medium flex items-center justify-center gap-2 transition-colors">
+                        <i data-lucide="download" class="w-3.5 h-3.5 text-cyan-400"></i>
+                        Save Preset
+                    </button>
+                    <button id="loadPresetBtn" class="w-full py-2.5 px-4 rounded-xl bg-slate-950/80 hover:bg-slate-800/80 border border-white/10 text-slate-200 text-xs font-medium flex items-center justify-center gap-2 transition-colors">
+                        <i data-lucide="upload" class="w-3.5 h-3.5 text-indigo-400"></i>
+                        Load Preset
+                    </button>
+                    <input type="file" id="presetFileInput" accept=".json" class="hidden">
+                </div>
+
             </div>
 
         </div>
@@ -1063,17 +1077,15 @@
                         return;
                     }
 
-                    const speedVal = parseInt(document.getElementById('leadSpeed').value); // 1 (Very Slow) to 5 (Active)
+                    const speedVal = parseInt(document.getElementById('leadSpeed').value);
                     const style = document.getElementById('leadStyleSelect').value;
                     const scaleName = document.getElementById('scaleSelect').value;
                     const scale = this.scales[scaleName] || this.scales.pentatonic;
 
-                    // Base beat duration in ms according to tempo slider
                     const baseBeat = (6 - speedVal) * 350 + 250; 
                     let delay = baseBeat;
 
                     if (style === 'slowAmbient') {
-                        // Classic original ambient drift
                         const prob = speedVal / 5;
                         if (Math.random() <= prob) {
                             const randomDegree = scale[Math.floor(Math.random() * scale.length)];
@@ -1084,17 +1096,14 @@
                         delay = (6 - speedVal) * 500 + 1000;
 
                     } else if (style === 'handpanConcert') {
-                        // Handpan Concert style: percussive rhythmic patterns, accents, double hits, pauses
                         const r = Math.random();
                         
                         if (r < 0.15 && stepIndex % 4 === 0) {
-                            // Musical pause for breathing space
                             delay = baseBeat * 2.0;
                         } else if (r < 0.35) {
-                            // Double grace-hit / fast ornament
                             const deg = scale[Math.floor(Math.random() * scale.length)];
                             const st = deg - 12;
-                            this.triggerLeadNote(st, 1.1); // Accent hit
+                            this.triggerLeadNote(st, 1.1);
                             
                             setTimeout(() => {
                                 const nextDeg = scale[(scale.indexOf(deg) + 1) % scale.length];
@@ -1103,7 +1112,6 @@
 
                             delay = baseBeat * 1.2;
                         } else if (r < 0.75) {
-                            // Stepwise melody movement (humanized melodic flow)
                             let curIndex = scale.indexOf(lastSemitone + 12);
                             if (curIndex === -1) curIndex = Math.floor(scale.length / 2);
                             
@@ -1112,11 +1120,10 @@
                             const semitones = scale[newIndex] - 12;
                             lastSemitone = semitones;
 
-                            const velocity = (stepIndex % 2 === 0) ? 1.0 : 0.65; // Rhythmic accent
+                            const velocity = (stepIndex % 2 === 0) ? 1.0 : 0.65;
                             this.triggerLeadNote(semitones, velocity);
                             delay = baseBeat * (Math.random() > 0.6 ? 0.5 : 1.0);
                         } else {
-                            // Octave jump accent
                             const randomDegree = scale[Math.floor(Math.random() * scale.length)];
                             const oct = Math.random() > 0.4 ? 12 : 0;
                             this.triggerLeadNote(randomDegree + oct - 12, 1.15);
@@ -1124,7 +1131,6 @@
                         }
 
                     } else if (style === 'syncopated') {
-                        // Syncopated Groove: off-beat accents, halved durations
                         const semitones = scale[Math.floor(Math.random() * scale.length)] - 12;
                         const isOffBeat = Math.random() > 0.4;
                         const velocity = isOffBeat ? 0.95 : 0.6;
@@ -1133,7 +1139,6 @@
                         delay = isOffBeat ? baseBeat * 0.75 : baseBeat * 1.25;
 
                     } else if (style === 'triplets') {
-                        // Triplet & Arpeggiated Waves: 3-note rolling arpeggios
                         const startIndex = Math.floor(Math.random() * (scale.length - 3));
                         const tripletNotes = [scale[startIndex], scale[startIndex + 1], scale[startIndex + 2]];
 
@@ -1148,7 +1153,6 @@
                         delay = baseBeat * 1.5;
                     }
 
-                    // Small humanization jitter (+/- 5%)
                     delay += (Math.random() - 0.5) * 40;
                     stepIndex++;
 
@@ -1412,6 +1416,115 @@
 
         document.getElementById('leadStyleSelect').addEventListener('change', () => {
             if (audioEngine.isEngineRunning) audioEngine.startLeadGenerator();
+        });
+
+        /* ===================================================================
+           PRESET MANAGEMENT (SAVE / LOAD)
+           =================================================================== */
+
+        const savePresetBtn = document.getElementById('savePresetBtn');
+        const loadPresetBtn = document.getElementById('loadPresetBtn');
+        const presetFileInput = document.getElementById('presetFileInput');
+
+        // Helper function to extract current UI state
+        function getCurrentState() {
+            return {
+                masterVolume: document.getElementById('masterVolume').value,
+                filterCutoff: document.getElementById('filterCutoff').value,
+                reverbMix: document.getElementById('reverbMix').value,
+                melodyToggle: document.getElementById('melodyToggle').checked,
+                scaleSelect: document.getElementById('scaleSelect').value,
+                melodySpeed: document.getElementById('melodySpeed').value,
+                chordToggle: document.getElementById('chordToggle').checked,
+                progressionSelect: document.getElementById('progressionSelect').value,
+                chordMorphSpeed: document.getElementById('chordMorphSpeed').value,
+                chordVolume: document.getElementById('chordVolume').value,
+                chimeVolume: document.getElementById('chimeVolume').value,
+                leadTimbreSelect: document.getElementById('leadTimbreSelect').value,
+                leadStyleSelect: document.getElementById('leadStyleSelect').value,
+                leadSpeed: document.getElementById('leadSpeed').value,
+                leadVolume: document.getElementById('leadVolume').value,
+                padVolume: document.getElementById('padVolume').value,
+                droneVolume: document.getElementById('droneVolume').value,
+                rainVolume: document.getElementById('rainVolume').value,
+                windVolume: document.getElementById('windVolume').value,
+                binauralFreqSelect: document.getElementById('binauralFreqSelect').value,
+                binauralBeatSelect: document.getElementById('binauralBeatSelect').value,
+                binauralVolume: document.getElementById('binauralVolume').value
+            };
+        }
+
+        // Helper function to apply state object to UI & Audio Engine
+        function applyState(state) {
+            const setValueAndTrigger = (id, val, eventType = 'input') => {
+                const elem = document.getElementById(id);
+                if (elem && val !== undefined) {
+                    if (elem.type === 'checkbox') {
+                        elem.checked = val;
+                    } else {
+                        elem.value = val;
+                    }
+                    elem.dispatchEvent(new Event(eventType));
+                }
+            };
+
+            setValueAndTrigger('masterVolume', state.masterVolume);
+            setValueAndTrigger('filterCutoff', state.filterCutoff);
+            setValueAndTrigger('reverbMix', state.reverbMix);
+            setValueAndTrigger('melodyToggle', state.melodyToggle, 'change');
+            setValueAndTrigger('scaleSelect', state.scaleSelect, 'change');
+            setValueAndTrigger('melodySpeed', state.melodySpeed);
+            setValueAndTrigger('chordToggle', state.chordToggle, 'change');
+            setValueAndTrigger('progressionSelect', state.progressionSelect, 'change');
+            setValueAndTrigger('chordMorphSpeed', state.chordMorphSpeed);
+            setValueAndTrigger('chordVolume', state.chordVolume);
+            setValueAndTrigger('chimeVolume', state.chimeVolume);
+            setValueAndTrigger('leadTimbreSelect', state.leadTimbreSelect, 'change');
+            setValueAndTrigger('leadStyleSelect', state.leadStyleSelect, 'change');
+            setValueAndTrigger('leadSpeed', state.leadSpeed);
+            setValueAndTrigger('leadVolume', state.leadVolume);
+            setValueAndTrigger('padVolume', state.padVolume);
+            setValueAndTrigger('droneVolume', state.droneVolume);
+            setValueAndTrigger('rainVolume', state.rainVolume);
+            setValueAndTrigger('windVolume', state.windVolume);
+            setValueAndTrigger('binauralFreqSelect', state.binauralFreqSelect, 'change');
+            setValueAndTrigger('binauralBeatSelect', state.binauralBeatSelect, 'change');
+            setValueAndTrigger('binauralVolume', state.binauralVolume);
+        }
+
+        // Save preset file download
+        savePresetBtn.addEventListener('click', () => {
+            const state = getCurrentState();
+            const dataStr = "data:text/json;charset=utf-8," + encodeURIComponent(JSON.stringify(state, null, 2));
+            const downloadAnchor = document.createElement('a');
+            downloadAnchor.setAttribute("href", dataStr);
+            downloadAnchor.setAttribute("download", `aura432_preset_${Date.now()}.json`);
+            document.body.appendChild(downloadAnchor);
+            downloadAnchor.click();
+            downloadAnchor.remove();
+        });
+
+        // Trigger file input dialog
+        loadPresetBtn.addEventListener('click', () => {
+            presetFileInput.click();
+        });
+
+        // Load preset from JSON file
+        presetFileInput.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = (event) => {
+                try {
+                    const loadedState = JSON.parse(event.target.result);
+                    applyState(loadedState);
+                } catch (err) {
+                    alert("Impossibile caricare il preset: il file non è valido.");
+                }
+            };
+            reader.readAsText(file);
+            presetFileInput.value = ''; // Reset input
         });
 
     </script>
