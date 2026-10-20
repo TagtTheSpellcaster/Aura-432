@@ -4,6 +4,12 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>AURA 432 - Generative Ambient & Harmonic Synthesizer</title>
+    
+    <!-- PWA Settings -->
+    <link rel="manifest" href="manifest.json">
+    <meta name="theme-color" content="#020617">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    
     <!-- Tailwind CSS for modern responsive styling -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Inter Font & Lucide Icons -->
@@ -1589,6 +1595,17 @@
             reader.readAsText(file);
             presetFileInput.value = ''; // Reset input
         });
+
+        /* ===================================================================
+           PWA SERVICE WORKER REGISTRATION
+           =================================================================== */
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('./sw.js')
+                    .then((reg) => console.log('AURA 432 SW registered:', reg.scope))
+                    .catch((err) => console.error('AURA 432 SW registration failed:', err));
+            });
+        }
 
     </script>
 </body>
