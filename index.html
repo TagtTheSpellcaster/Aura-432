@@ -288,12 +288,26 @@
                                 </select>
                             </div>
                             <div>
-                                <label class="block text-[10px] text-slate-400 mb-1">Pace: <span id="leadSpeedVal" class="text-sky-400">Medium</span></label>
-                                <input type="range" id="leadSpeed" min="1" max="5" step="1" value="3" class="w-full mt-1">
+                                <label class="block text-[10px] text-slate-400 mb-1">Melody Style</label>
+                                <select id="leadStyleSelect" class="w-full bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-500">
+                                    <option value="handpanConcert">Handpan Concert (Percussive)</option>
+                                    <option value="slowAmbient">Slow Ambient Drift</option>
+                                    <option value="syncopated">Syncopated Grooves</option>
+                                    <option value="triplets">Triplet & Arpeggiated Waves</option>
+                                </select>
                             </div>
                         </div>
 
-                        <input type="range" id="leadVolume" min="0" max="1" step="0.01" value="0.3" class="w-full">
+                        <div class="grid grid-cols-2 gap-3 pt-1">
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Pace: <span id="leadSpeedVal" class="text-sky-400">Medium</span></label>
+                                <input type="range" id="leadSpeed" min="1" max="5" step="1" value="3" class="w-full mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Lead Volume</label>
+                                <input type="range" id="leadVolume" min="0" max="1" step="0.01" value="0.3" class="w-full mt-1">
+                            </div>
+                        </div>
                     </div>
 
                     <!-- Channel 4: Rain / Ocean Texture -->
@@ -412,7 +426,7 @@
                 // Melodic, Chime & Lead Timers
                 this.melodyTimer = null;
                 this.chimeTimer = null;
-                this.leadTimer = null;
+                this.leadTimeout = null;
 
                 this.scales = {
                     pentatonic: [0, 2, 4, 7, 9, 12, 14, 16, 19, 21],
@@ -957,7 +971,7 @@
             }
 
             // --- MELODIC LEAD ENGINE ---
-            triggerLeadNote(semitones) {
+            triggerLeadNote(semitones, velocity = 1.0) {
                 if (!this.isEngineRunning) return;
 
                 const now = this.ctx.currentTime;
@@ -968,13 +982,13 @@
                 const noteGain = this.ctx.createGain();
 
                 if (timbre === 'handpan') {
-                    // Acoustic Handpan Synthesis
+                    // Acoustic Handpan Synthesis with velocity dynamics
                     osc.type = 'sine';
                     const mod = this.ctx.createOscillator();
                     const modG = this.ctx.createGain();
                     mod.type = 'triangle';
                     mod.frequency.setValueAtTime(freq * 2.0, now);
-                    modG.gain.setValueAtTime(freq * 0.4, now);
+                    modG.gain.setValueAtTime(freq * 0.4 * velocity, now);
                     modG.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
                     
                     mod.connect(modG);
@@ -983,7 +997,7 @@
                     mod.stop(now + 2.5);
 
                     noteGain.gain.setValueAtTime(0, now);
-                    noteGain.gain.linearRampToValueAtTime(0.35, now + 0.015);
+                    noteGain.gain.linearRampToValueAtTime(0.35 * velocity, now + 0.015);
                     noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
 
                 } else if (timbre === 'glass') {
@@ -991,32 +1005,32 @@
                     const mod = this.ctx.createOscillator();
                     const modG = this.ctx.createGain();
                     mod.frequency.setValueAtTime(freq * 2, now);
-                    modG.gain.setValueAtTime(freq * 0.2, now);
+                    modG.gain.setValueAtTime(freq * 0.2 * velocity, now);
                     mod.connect(modG);
                     modG.connect(osc.frequency);
                     mod.start(now);
                     mod.stop(now + 3.0);
 
                     noteGain.gain.setValueAtTime(0, now);
-                    noteGain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+                    noteGain.gain.linearRampToValueAtTime(0.2 * velocity, now + 0.05);
                     noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
 
                 } else if (timbre === 'flute') {
                     osc.type = 'triangle';
                     noteGain.gain.setValueAtTime(0, now);
-                    noteGain.gain.linearRampToValueAtTime(0.25, now + 0.4);
+                    noteGain.gain.linearRampToValueAtTime(0.25 * velocity, now + 0.4);
                     noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
 
                 } else if (timbre === 'keys') {
                     osc.type = 'sine';
                     noteGain.gain.setValueAtTime(0, now);
-                    noteGain.gain.linearRampToValueAtTime(0.22, now + 0.1);
+                    noteGain.gain.linearRampToValueAtTime(0.22 * velocity, now + 0.1);
                     noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
 
                 } else if (timbre === 'kalimba') {
                     osc.type = 'sine';
                     noteGain.gain.setValueAtTime(0, now);
-                    noteGain.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                    noteGain.gain.linearRampToValueAtTime(0.3 * velocity, now + 0.02);
                     noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
                 }
 
@@ -1038,29 +1052,110 @@
             }
 
             startLeadGenerator() {
-                if (this.leadTimer) clearInterval(this.leadTimer);
+                if (this.leadTimeout) clearTimeout(this.leadTimeout);
 
-                const step = () => {
-                    if (this.isEngineRunning) {
-                        const speed = parseInt(document.getElementById('leadSpeed').value);
-                        const prob = speed / 5;
+                let stepIndex = 0;
+                let lastSemitone = 0;
+
+                const scheduleNext = () => {
+                    if (!this.isEngineRunning) {
+                        this.leadTimeout = setTimeout(scheduleNext, 1000);
+                        return;
+                    }
+
+                    const speedVal = parseInt(document.getElementById('leadSpeed').value); // 1 (Very Slow) to 5 (Active)
+                    const style = document.getElementById('leadStyleSelect').value;
+                    const scaleName = document.getElementById('scaleSelect').value;
+                    const scale = this.scales[scaleName] || this.scales.pentatonic;
+
+                    // Base beat duration in ms according to tempo slider
+                    const baseBeat = (6 - speedVal) * 350 + 250; 
+                    let delay = baseBeat;
+
+                    if (style === 'slowAmbient') {
+                        // Classic original ambient drift
+                        const prob = speedVal / 5;
                         if (Math.random() <= prob) {
-                            const scaleName = document.getElementById('scaleSelect').value;
-                            const scale = this.scales[scaleName] || this.scales.pentatonic;
-
                             const randomDegree = scale[Math.floor(Math.random() * scale.length)];
                             const randomOctave = Math.random() > 0.5 ? 0 : 12;
                             const semitones = randomDegree + randomOctave - 12;
-
-                            this.triggerLeadNote(semitones);
+                            this.triggerLeadNote(semitones, 0.8 + Math.random() * 0.4);
                         }
+                        delay = (6 - speedVal) * 500 + 1000;
+
+                    } else if (style === 'handpanConcert') {
+                        // Handpan Concert style: percussive rhythmic patterns, accents, double hits, pauses
+                        const r = Math.random();
+                        
+                        if (r < 0.15 && stepIndex % 4 === 0) {
+                            // Musical pause for breathing space
+                            delay = baseBeat * 2.0;
+                        } else if (r < 0.35) {
+                            // Double grace-hit / fast ornament
+                            const deg = scale[Math.floor(Math.random() * scale.length)];
+                            const st = deg - 12;
+                            this.triggerLeadNote(st, 1.1); // Accent hit
+                            
+                            setTimeout(() => {
+                                const nextDeg = scale[(scale.indexOf(deg) + 1) % scale.length];
+                                this.triggerLeadNote(nextDeg - 12, 0.7);
+                            }, baseBeat * 0.35);
+
+                            delay = baseBeat * 1.2;
+                        } else if (r < 0.75) {
+                            // Stepwise melody movement (humanized melodic flow)
+                            let curIndex = scale.indexOf(lastSemitone + 12);
+                            if (curIndex === -1) curIndex = Math.floor(scale.length / 2);
+                            
+                            const stepOffset = Math.random() > 0.5 ? 1 : -1;
+                            const newIndex = (curIndex + stepOffset + scale.length) % scale.length;
+                            const semitones = scale[newIndex] - 12;
+                            lastSemitone = semitones;
+
+                            const velocity = (stepIndex % 2 === 0) ? 1.0 : 0.65; // Rhythmic accent
+                            this.triggerLeadNote(semitones, velocity);
+                            delay = baseBeat * (Math.random() > 0.6 ? 0.5 : 1.0);
+                        } else {
+                            // Octave jump accent
+                            const randomDegree = scale[Math.floor(Math.random() * scale.length)];
+                            const oct = Math.random() > 0.4 ? 12 : 0;
+                            this.triggerLeadNote(randomDegree + oct - 12, 1.15);
+                            delay = baseBeat * 1.5;
+                        }
+
+                    } else if (style === 'syncopated') {
+                        // Syncopated Groove: off-beat accents, halved durations
+                        const semitones = scale[Math.floor(Math.random() * scale.length)] - 12;
+                        const isOffBeat = Math.random() > 0.4;
+                        const velocity = isOffBeat ? 0.95 : 0.6;
+                        
+                        this.triggerLeadNote(semitones, velocity);
+                        delay = isOffBeat ? baseBeat * 0.75 : baseBeat * 1.25;
+
+                    } else if (style === 'triplets') {
+                        // Triplet & Arpeggiated Waves: 3-note rolling arpeggios
+                        const startIndex = Math.floor(Math.random() * (scale.length - 3));
+                        const tripletNotes = [scale[startIndex], scale[startIndex + 1], scale[startIndex + 2]];
+
+                        tripletNotes.forEach((deg, idx) => {
+                            setTimeout(() => {
+                                if (this.isEngineRunning) {
+                                    this.triggerLeadNote(deg - 12, 0.7 + (idx * 0.15));
+                                }
+                            }, idx * (baseBeat * 0.33));
+                        });
+
+                        delay = baseBeat * 1.5;
                     }
-                    const speedVal = parseInt(document.getElementById('leadSpeed').value);
-                    const baseDelay = (6 - speedVal) * 500 + 1000;
-                    this.leadTimer = setTimeout(step, baseDelay);
+
+                    // Small humanization jitter (+/- 5%)
+                    delay += (Math.random() - 0.5) * 40;
+                    stepIndex++;
+
+                    this.leadTimeout = setTimeout(scheduleNext, Math.max(150, delay));
                 };
 
-                step();
+                scheduleNext();
             }
 
             async togglePlay() {
@@ -1312,6 +1407,10 @@
             const val = parseInt(e.target.value);
             const labels = ['Very Slow', 'Slow', 'Medium', 'Fast', 'Active'];
             document.getElementById('leadSpeedVal').textContent = labels[val - 1];
+            if (audioEngine.isEngineRunning) audioEngine.startLeadGenerator();
+        });
+
+        document.getElementById('leadStyleSelect').addEventListener('change', () => {
             if (audioEngine.isEngineRunning) audioEngine.startLeadGenerator();
         });
 
