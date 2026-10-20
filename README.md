@@ -9,11 +9,11 @@ Aura 432 is a single-file, zero-dependency, real-time generative ambient soundsc
 
 Designed for deep relaxation, focus, meditation, and sleep, Aura 432 synthesizes evolving drone pads, randomized harmonic arpeggios, organic rain and wind textures, and binaural beats directly inside your browser.
 
-🚀 **[Launch Aura 432 Live Demo](https://tagtthespellcaster.github.io/Aura-432/)**
+**[Launch Aura 432 Live Demo](https://tagtthespellcaster.github.io/Aura-432/)**
 
 ---
 
-## ✨ Features
+## Features
 
 - **432 Hz Master Tuning**: All scales, notes, FM synthesis modulators, and resonant frequencies are calculated using A4 = 432 Hz as the fundamental harmonic pitch.
 - **Generative Ambient Engine**: Algorithmic melody generator with adjustable tempo, density, octave range, and musical scales:
@@ -30,7 +30,7 @@ Designed for deep relaxation, focus, meditation, and sleep, Aura 432 synthesizes
 
 ---
 
-## 🛠️ Tech Stack
+## Tech Stack
 
 - **Audio Engine**: Web Audio API (`AudioContext`, `OscillatorNode`, `BiquadFilterNode`, `GainNode`, `ConvolverNode`, `AnalyserNode`)
 - **Visualizer**: HTML5 2D Canvas API
@@ -39,7 +39,7 @@ Designed for deep relaxation, focus, meditation, and sleep, Aura 432 synthesizes
 
 ---
 
-## 🚀 Quick Start
+## Quick Start
 
 Since Aura 432 is completely self-contained in a single file, running it locally requires no installation or build step.
 
