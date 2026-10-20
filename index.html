@@ -381,6 +381,11 @@
                             <option value="creativity">Creative Flow (528Hz + Theta 4Hz)</option>
                             <option value="painRelief">Pain & Tension Relief (174Hz + Alpha 10Hz)</option>
                             <option value="catPurr">Cat Purr Simulation (Low-End Resonant Drone)</option>
+                            <option value="lucid">Lucid Dreaming & Hypnagogia (639Hz + Theta 4Hz)</option>
+                            <option value="anxiety">Anxiety & Panic De-escalation (174Hz + Alpha 10Hz)</option>
+                            <option value="hyperFocus">Hyper-Focus & Coding (Schumann 7.83Hz)</option>
+                            <option value="zenReading">Zen Tea & Reading (432Hz + Alpha 10Hz)</option>
+                            <option value="morning">Solar Energy & Morning Awakening (528Hz)</option>
                         </select>
                     </div>
 
@@ -1493,6 +1498,51 @@
                 leadStyleSelect: "slowAmbient", leadSpeed: "1", leadVolume: "0",
                 padVolume: "0.35", droneVolume: "0.85", rainVolume: "0.15", windVolume: "0.35",
                 binauralFreqSelect: "174", binauralBeatSelect: "0.5", binauralVolume: "0.25"
+            },
+            lucid: {
+                masterVolume: "0.65", filterCutoff: "800", reverbMix: "0.85",
+                melodyToggle: true, scaleSelect: "dorian", melodySpeed: "8.5",
+                chordToggle: true, progressionSelect: "deepSpace", chordMorphSpeed: "26",
+                chordVolume: "0.4", chimeVolume: "0.15", leadTimbreSelect: "flute",
+                leadStyleSelect: "slowAmbient", leadSpeed: "1", leadVolume: "0.2",
+                padVolume: "0.5", droneVolume: "0.6", rainVolume: "0.2", windVolume: "0.35",
+                binauralFreqSelect: "639", binauralBeatSelect: "4", binauralVolume: "0.15"
+            },
+            anxiety: {
+                masterVolume: "0.6", filterCutoff: "500", reverbMix: "0.7",
+                melodyToggle: false, scaleSelect: "pentatonic", melodySpeed: "10",
+                chordToggle: true, progressionSelect: "ethereal", chordMorphSpeed: "30",
+                chordVolume: "0.5", chimeVolume: "0", leadTimbreSelect: "keys",
+                leadStyleSelect: "slowAmbient", leadSpeed: "1", leadVolume: "0",
+                padVolume: "0.6", droneVolume: "0.7", rainVolume: "0.3", windVolume: "0.25",
+                binauralFreqSelect: "174", binauralBeatSelect: "10", binauralVolume: "0.2"
+            },
+            hyperFocus: {
+                masterVolume: "0.7", filterCutoff: "1800", reverbMix: "0.35",
+                melodyToggle: true, scaleSelect: "aeolian", melodySpeed: "5.5",
+                chordToggle: true, progressionSelect: "celestial", chordMorphSpeed: "18",
+                chordVolume: "0.35", chimeVolume: "0", leadTimbreSelect: "glass",
+                leadStyleSelect: "slowAmbient", leadSpeed: "2", leadVolume: "0.15",
+                padVolume: "0.5", droneVolume: "0.4", rainVolume: "0.4", windVolume: "0.1",
+                binauralFreqSelect: "432", binauralBeatSelect: "7.83", binauralVolume: "0.1"
+            },
+            zenReading: {
+                masterVolume: "0.75", filterCutoff: "2000", reverbMix: "0.6",
+                melodyToggle: true, scaleSelect: "pentatonic", melodySpeed: "5",
+                chordToggle: true, progressionSelect: "warmSun", chordMorphSpeed: "16",
+                chordVolume: "0.4", chimeVolume: "0.2", leadTimbreSelect: "handpan",
+                leadStyleSelect: "slowAmbient", leadSpeed: "2", leadVolume: "0.3",
+                padVolume: "0.5", droneVolume: "0.3", rainVolume: "0.2", windVolume: "0.2",
+                binauralFreqSelect: "432", binauralBeatSelect: "10", binauralVolume: "0.1"
+            },
+            morning: {
+                masterVolume: "0.75", filterCutoff: "3000", reverbMix: "0.5",
+                melodyToggle: true, scaleSelect: "lydian", melodySpeed: "4",
+                chordToggle: true, progressionSelect: "celestial", chordMorphSpeed: "12",
+                chordVolume: "0.45", chimeVolume: "0.3", leadTimbreSelect: "kalimba",
+                leadStyleSelect: "handpanConcert", leadSpeed: "3", leadVolume: "0.35",
+                padVolume: "0.6", droneVolume: "0.3", rainVolume: "0.1", windVolume: "0.1",
+                binauralFreqSelect: "528", binauralBeatSelect: "10", binauralVolume: "0.15"
             }
         };
 
