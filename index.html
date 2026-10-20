@@ -175,7 +175,7 @@
                 </div>
             </div>
 
-            <!-- NEW: Dedicated Harmonic & Chords Layer -->
+            <!-- Dedicated Harmonic & Chords Layer -->
             <div class="p-5 md:p-6 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-xl space-y-5">
                 <div class="flex items-center justify-between">
                     <h2 class="text-sm font-semibold tracking-wider text-slate-300 uppercase flex items-center gap-2">
@@ -314,6 +314,38 @@
                             </select>
                         </div>
                         <input type="range" id="binauralVolume" min="0" max="1" step="0.01" value="0.15" class="w-full">
+
+                        <!-- Melodic Lead Engine Integration -->
+                        <div class="border-t border-white/10 pt-3 mt-3 space-y-3">
+                            <div class="flex items-center justify-between">
+                                <div class="flex items-center gap-2">
+                                    <i data-lucide="music-2" class="w-4 h-4 text-sky-400"></i>
+                                    <span class="text-xs font-semibold tracking-wider text-sky-300 uppercase">Melodic Lead Engine</span>
+                                </div>
+                                <span id="leadVolVal" class="text-xs text-sky-400">30%</span>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-3">
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 mb-1">Lead Timbre</label>
+                                    <select id="leadTimbreSelect" class="w-full bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-300">
+                                        <option value="glass">Glass Chime (FM)</option>
+                                        <option value="flute">Soft Flute (Triangle)</option>
+                                        <option value="keys">Warm Electric Keys</option>
+                                        <option value="kalimba">Plucked Kalimba</option>
+                                    </select>
+                                </div>
+                                <div>
+                                    <label class="block text-[10px] text-slate-400 mb-1">Pace: <span id="leadSpeedVal" class="text-sky-400">Medium</span></label>
+                                    <input type="range" id="leadSpeed" min="1" max="5" step="1" value="3" class="w-full mt-1">
+                                </div>
+                            </div>
+
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Lead Volume</label>
+                                <input type="range" id="leadVolume" min="0" max="1" step="0.01" value="0.3" class="w-full">
+                            </div>
+                        </div>
                     </div>
 
                 </div>
@@ -359,9 +391,12 @@
                 this.windGainNode = null;
                 this.binauralGainNode = null;
 
-                // NEW: Harmonic & Chords Gain Nodes
+                // Harmonic & Chords Gain Nodes
                 this.chordGainNode = null;
                 this.chimeGainNode = null;
+
+                // Melodic Lead Engine Gain Node
+                this.leadGainNode = null;
 
                 // Active Oscillators and Sources
                 this.droneOscs = [];
@@ -374,9 +409,10 @@
                 this.chordTimer = null;
                 this.currentChordIndex = 0;
 
-                // Melodic & Chime Generators
+                // Melodic, Chime & Lead Timers
                 this.melodyTimer = null;
                 this.chimeTimer = null;
+                this.leadTimer = null;
 
                 this.scales = {
                     pentatonic: [0, 2, 4, 7, 9, 12, 14, 16, 19, 21],
@@ -428,12 +464,12 @@
 
                 // 2. Master Gain
                 this.masterGain = this.ctx.createGain();
-                this.masterGain.gain.setValueAtTime(0.7, this.ctx.currentTime);
+                this.masterGain.gain.setValueAtTime(parseFloat(document.getElementById('masterVolume').value), this.ctx.currentTime);
 
                 // 3. Cutoff Master Filter
                 this.masterFilter = this.ctx.createBiquadFilter();
                 this.masterFilter.type = "lowpass";
-                this.masterFilter.frequency.setValueAtTime(1200, this.ctx.currentTime);
+                this.masterFilter.frequency.setValueAtTime(parseFloat(document.getElementById('filterCutoff').value), this.ctx.currentTime);
 
                 // Master -> Analyser -> Output connection
                 this.masterGain.connect(this.masterFilter);
@@ -452,28 +488,28 @@
                 this.startWindNoise();
                 this.startBinauralTones();
 
-                // 7. Start Melodic & Chord Sequencers
+                // 7. Start Melodic, Chord & Lead Sequencers
                 this.startMelodyGenerator();
                 this.startChordProgression();
                 this.startChimeGenerator();
+                this.startLeadGenerator();
 
                 this.isEngineRunning = true;
             }
 
-            // Calculate frequency based on A4 = 432 Hz
             getPitch432(semitoneFromA4) {
                 return this.a4Freq * Math.pow(2, semitoneFromA4 / 12);
             }
 
             setupSpatialReverb() {
                 this.reverbGain = this.ctx.createGain();
-                this.reverbGain.gain.setValueAtTime(0.6, this.ctx.currentTime);
+                this.reverbGain.gain.setValueAtTime(parseFloat(document.getElementById('reverbMix').value), this.ctx.currentTime);
 
                 this.delayL = this.ctx.createDelay();
                 this.delayR = this.ctx.createDelay();
                 
-                this.delayL.delayTime.setValueAtTime(0.35, this.ctx.currentTime); // 350ms
-                this.delayR.delayTime.setValueAtTime(0.50, this.ctx.currentTime); // 500ms
+                this.delayL.delayTime.setValueAtTime(0.35, this.ctx.currentTime);
+                this.delayR.delayTime.setValueAtTime(0.50, this.ctx.currentTime);
 
                 const feedbackL = this.ctx.createGain();
                 const feedbackR = this.ctx.createGain();
@@ -485,7 +521,6 @@
                 filterL.type = "lowpass"; filterL.frequency.setValueAtTime(1500, this.ctx.currentTime);
                 filterR.type = "lowpass"; filterR.frequency.setValueAtTime(1200, this.ctx.currentTime);
 
-                // Cross connection (Left <-> Right)
                 this.reverbGain.connect(this.delayL);
                 this.reverbGain.connect(this.delayR);
 
@@ -504,41 +539,47 @@
             setupMixerChannels() {
                 // Pad gain
                 this.padGainNode = this.ctx.createGain();
-                this.padGainNode.gain.setValueAtTime(0.6, this.ctx.currentTime);
+                this.padGainNode.gain.setValueAtTime(parseFloat(document.getElementById('padVolume').value), this.ctx.currentTime);
                 this.padGainNode.connect(this.masterGain);
                 this.padGainNode.connect(this.reverbGain);
 
                 // Drone gain
                 this.droneGainNode = this.ctx.createGain();
-                this.droneGainNode.gain.setValueAtTime(0.5, this.ctx.currentTime);
+                this.droneGainNode.gain.setValueAtTime(parseFloat(document.getElementById('droneVolume').value), this.ctx.currentTime);
                 this.droneGainNode.connect(this.masterGain);
 
                 // Rain gain
                 this.rainGainNode = this.ctx.createGain();
-                this.rainGainNode.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                this.rainGainNode.gain.setValueAtTime(parseFloat(document.getElementById('rainVolume').value), this.ctx.currentTime);
                 this.rainGainNode.connect(this.masterGain);
 
                 // Wind gain
                 this.windGainNode = this.ctx.createGain();
-                this.windGainNode.gain.setValueAtTime(0.2, this.ctx.currentTime);
+                this.windGainNode.gain.setValueAtTime(parseFloat(document.getElementById('windVolume').value), this.ctx.currentTime);
                 this.windGainNode.connect(this.masterGain);
 
                 // Binaural gain
                 this.binauralGainNode = this.ctx.createGain();
-                this.binauralGainNode.gain.setValueAtTime(0.15, this.ctx.currentTime);
+                this.binauralGainNode.gain.setValueAtTime(parseFloat(document.getElementById('binauralVolume').value), this.ctx.currentTime);
                 this.binauralGainNode.connect(this.masterGain);
 
                 // Chord Progression Pad gain
                 this.chordGainNode = this.ctx.createGain();
-                this.chordGainNode.gain.setValueAtTime(0.4, this.ctx.currentTime);
+                this.chordGainNode.gain.setValueAtTime(parseFloat(document.getElementById('chordVolume').value), this.ctx.currentTime);
                 this.chordGainNode.connect(this.masterGain);
                 this.chordGainNode.connect(this.reverbGain);
 
                 // FM Chimes / Bells gain
                 this.chimeGainNode = this.ctx.createGain();
-                this.chimeGainNode.gain.setValueAtTime(0.3, this.ctx.currentTime);
+                this.chimeGainNode.gain.setValueAtTime(parseFloat(document.getElementById('chimeVolume').value), this.ctx.currentTime);
                 this.chimeGainNode.connect(this.masterGain);
                 this.chimeGainNode.connect(this.reverbGain);
+
+                // Melodic Lead Engine gain
+                this.leadGainNode = this.ctx.createGain();
+                this.leadGainNode.gain.setValueAtTime(parseFloat(document.getElementById('leadVolume').value), this.ctx.currentTime);
+                this.leadGainNode.connect(this.masterGain);
+                this.leadGainNode.connect(this.reverbGain);
             }
 
             // --- LAYER 1: SUB-BASS DRONE ---
@@ -763,7 +804,7 @@
                 triggerNext();
             }
 
-            // --- NEW: HARMONIC CHORD PROGRESSION LAYER ---
+            // --- HARMONIC CHORD PROGRESSION LAYER ---
             morphToNextChord() {
                 if (!this.isEngineRunning) return;
 
@@ -782,10 +823,8 @@
                 const morphDuration = parseFloat(document.getElementById('chordMorphSpeed').value);
                 const now = this.ctx.currentTime;
 
-                // Gently fade out old chord nodes
                 this.fadeOutActiveChords(morphDuration * 0.6);
 
-                // Build new chord layer
                 const newChordNodes = [];
                 const chordMasterGain = this.ctx.createGain();
                 chordMasterGain.gain.setValueAtTime(0, now);
@@ -799,7 +838,6 @@
                     osc.type = 'sine';
                     osc.frequency.setValueAtTime(freq, now);
 
-                    // Soft warm low-pass filter
                     filter.type = 'lowpass';
                     filter.frequency.setValueAtTime(600, now);
 
@@ -843,7 +881,7 @@
                 step();
             }
 
-            // --- NEW: FM BELL & CHIME COUNTERPOINT GENERATOR ---
+            // --- FM BELL & CHIME COUNTERPOINT GENERATOR ---
             playChimeSound() {
                 if (!this.isEngineRunning) return;
 
@@ -854,9 +892,8 @@
                 const prog = this.progressions[progKey] || this.progressions.celestial;
                 const currentChord = prog[this.currentChordIndex];
                 
-                // Select a high pitch note from the current chord
                 const rootST = currentChord[Math.floor(Math.random() * currentChord.length)];
-                const chimeST = rootST + 24; // Transpose 2 octaves up
+                const chimeST = rootST + 24;
                 const freq = this.getPitch432(chimeST);
 
                 const now = this.ctx.currentTime;
@@ -865,18 +902,16 @@
                 const modGain = this.ctx.createGain();
                 const envGain = this.ctx.createGain();
 
-                // Metallic FM synthesis parameters
                 carrier.type = 'sine';
                 modulator.type = 'sine';
 
                 carrier.frequency.setValueAtTime(freq, now);
-                modulator.frequency.setValueAtTime(freq * 3.5, now); // Inharmonic FM ratio
+                modulator.frequency.setValueAtTime(freq * 3.5, now);
                 modGain.gain.setValueAtTime(freq * 1.2, now);
 
                 modulator.connect(modGain);
                 modGain.connect(carrier.frequency);
 
-                // Quick attack, long metallic chime decay
                 envGain.gain.setValueAtTime(0, now);
                 envGain.gain.linearRampToValueAtTime(0.2, now + 0.02);
                 envGain.gain.exponentialRampToValueAtTime(0.0001, now + 5.0);
@@ -912,6 +947,94 @@
                 };
 
                 trigger();
+            }
+
+            // --- MELODIC LEAD ENGINE ---
+            triggerLeadNote(semitones) {
+                if (!this.isEngineRunning) return;
+
+                const now = this.ctx.currentTime;
+                const timbre = document.getElementById('leadTimbreSelect').value;
+                const freq = this.getPitch432(semitones);
+
+                const osc = this.ctx.createOscillator();
+                const noteGain = this.ctx.createGain();
+
+                if (timbre === 'glass') {
+                    osc.type = 'sine';
+                    const mod = this.ctx.createOscillator();
+                    const modG = this.ctx.createGain();
+                    mod.frequency.setValueAtTime(freq * 2, now);
+                    modG.gain.setValueAtTime(freq * 0.2, now);
+                    mod.connect(modG);
+                    modG.connect(osc.frequency);
+                    mod.start(now);
+                    mod.stop(now + 3.0);
+
+                    noteGain.gain.setValueAtTime(0, now);
+                    noteGain.gain.linearRampToValueAtTime(0.2, now + 0.05);
+                    noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.8);
+
+                } else if (timbre === 'flute') {
+                    osc.type = 'triangle';
+                    noteGain.gain.setValueAtTime(0, now);
+                    noteGain.gain.linearRampToValueAtTime(0.25, now + 0.4);
+                    noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 3.2);
+
+                } else if (timbre === 'keys') {
+                    osc.type = 'sine';
+                    noteGain.gain.setValueAtTime(0, now);
+                    noteGain.gain.linearRampToValueAtTime(0.22, now + 0.1);
+                    noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.5);
+
+                } else if (timbre === 'kalimba') {
+                    osc.type = 'sine';
+                    noteGain.gain.setValueAtTime(0, now);
+                    noteGain.gain.linearRampToValueAtTime(0.3, now + 0.02);
+                    noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 1.8);
+                }
+
+                osc.frequency.setValueAtTime(freq, now);
+
+                const panner = this.ctx.createStereoPanner ? this.ctx.createStereoPanner() : null;
+                if (panner) {
+                    panner.pan.setValueAtTime((Math.random() * 1.4) - 0.7, now);
+                    osc.connect(panner);
+                    panner.connect(noteGain);
+                } else {
+                    osc.connect(noteGain);
+                }
+
+                noteGain.connect(this.leadGainNode);
+
+                osc.start(now);
+                osc.stop(now + 3.5);
+            }
+
+            startLeadGenerator() {
+                if (this.leadTimer) clearInterval(this.leadTimer);
+
+                const step = () => {
+                    if (this.isEngineRunning) {
+                        const speed = parseInt(document.getElementById('leadSpeed').value);
+                        const prob = speed / 5;
+                        if (Math.random() <= prob) {
+                            const scaleName = document.getElementById('scaleSelect').value;
+                            const scale = this.scales[scaleName] || this.scales.pentatonic;
+
+                            const randomDegree = scale[Math.floor(Math.random() * scale.length)];
+                            const randomOctave = Math.random() > 0.5 ? 0 : 12;
+                            const semitones = randomDegree + randomOctave - 12;
+
+                            this.triggerLeadNote(semitones);
+                        }
+                    }
+                    const speedVal = parseInt(document.getElementById('leadSpeed').value);
+                    const baseDelay = (6 - speedVal) * 500 + 1000;
+                    this.leadTimer = setTimeout(step, baseDelay);
+                };
+
+                step();
             }
 
             async togglePlay() {
@@ -1121,7 +1244,7 @@
             document.getElementById('melodySpeedValue').textContent = `${val.toFixed(1)}s`;
         });
 
-        // NEW: Harmonic Layer Controls
+        // Harmonic Layer Controls
         document.getElementById('chordVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             document.getElementById('chordVolVal').textContent = `${Math.round(val * 100)}%`;
@@ -1150,6 +1273,20 @@
         });
         document.getElementById('binauralBeatSelect').addEventListener('change', () => {
             if (audioEngine.isEngineRunning) audioEngine.startBinauralTones();
+        });
+
+        // Melodic Lead Engine Controls
+        document.getElementById('leadVolume').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            document.getElementById('leadVolVal').textContent = `${Math.round(val * 100)}%`;
+            if (audioEngine.leadGainNode) audioEngine.leadGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+        });
+
+        document.getElementById('leadSpeed').addEventListener('input', (e) => {
+            const val = parseInt(e.target.value);
+            const labels = ['Very Slow', 'Slow', 'Medium', 'Fast', 'Active'];
+            document.getElementById('leadSpeedVal').textContent = labels[val - 1];
+            if (audioEngine.isEngineRunning) audioEngine.startLeadGenerator();
         });
 
     </script>
