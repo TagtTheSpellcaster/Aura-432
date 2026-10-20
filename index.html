@@ -232,7 +232,7 @@
 
         </div>
 
-        <!-- Right Column: Sound Channel Mixer (Pads, Drones, Textures, Solfeggio) -->
+        <!-- Right Column: Sound Channel Mixer (Pads, Drones, Textures, Solfeggio, Lead Engine) -->
         <div class="lg:col-span-5 flex flex-col gap-6">
             
             <div class="p-5 md:p-6 rounded-3xl border border-white/10 bg-slate-900/40 backdrop-blur-xl flex-1 space-y-6">
@@ -266,7 +266,37 @@
                         <input type="range" id="droneVolume" min="0" max="1" step="0.01" value="0.5" class="w-full">
                     </div>
 
-                    <!-- Channel 3: Rain / Ocean Texture -->
+                    <!-- Channel 3: Melodic Lead Engine (Pannello indipendente) -->
+                    <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
+                        <div class="flex items-center justify-between">
+                            <div class="flex items-center gap-2">
+                                <i data-lucide="music-2" class="w-4 h-4 text-sky-400"></i>
+                                <span class="text-sm font-medium text-slate-200">Melodic Lead Engine</span>
+                            </div>
+                            <span id="leadVolVal" class="text-xs text-sky-400">30%</span>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-3">
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Lead Timbre</label>
+                                <select id="leadTimbreSelect" class="w-full bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-300 focus:outline-none focus:border-sky-500">
+                                    <option value="handpan">Acoustic Handpan</option>
+                                    <option value="glass">Glass Chime (FM)</option>
+                                    <option value="flute">Soft Flute (Triangle)</option>
+                                    <option value="keys">Warm Electric Keys</option>
+                                    <option value="kalimba">Plucked Kalimba</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-[10px] text-slate-400 mb-1">Pace: <span id="leadSpeedVal" class="text-sky-400">Medium</span></label>
+                                <input type="range" id="leadSpeed" min="1" max="5" step="1" value="3" class="w-full mt-1">
+                            </div>
+                        </div>
+
+                        <input type="range" id="leadVolume" min="0" max="1" step="0.01" value="0.3" class="w-full">
+                    </div>
+
+                    <!-- Channel 4: Rain / Ocean Texture -->
                     <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -278,7 +308,7 @@
                         <input type="range" id="rainVolume" min="0" max="1" step="0.01" value="0.3" class="w-full">
                     </div>
 
-                    <!-- Channel 4: Wind Texture -->
+                    <!-- Channel 5: Wind Texture -->
                     <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -290,7 +320,7 @@
                         <input type="range" id="windVolume" min="0" max="1" step="0.01" value="0.2" class="w-full">
                     </div>
 
-                    <!-- Channel 5: Solfeggio / Binaural Tones -->
+                    <!-- Channel 6: Solfeggio / Binaural Tones -->
                     <div class="p-4 rounded-2xl bg-slate-950/50 border border-white/5 space-y-3">
                         <div class="flex items-center justify-between">
                             <div class="flex items-center gap-2">
@@ -301,12 +331,14 @@
                         </div>
                         <div class="grid grid-cols-2 gap-3 mb-2">
                             <select id="binauralFreqSelect" class="bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-300">
+                                <option value="none">None (Disabled)</option>
                                 <option value="432">432 Hz - Natural Harmony</option>
                                 <option value="528">528 Hz - Transformation</option>
                                 <option value="174">174 Hz - Natural Anesthetic</option>
                                 <option value="639">639 Hz - Connection</option>
                             </select>
                             <select id="binauralBeatSelect" class="bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-300">
+                                <option value="none">None (Disabled)</option>
                                 <option value="4">Theta 4Hz (Meditation)</option>
                                 <option value="7.83">Schumann 7.83Hz (Earth)</option>
                                 <option value="10">Alpha 10Hz (Relaxation)</option>
@@ -314,38 +346,6 @@
                             </select>
                         </div>
                         <input type="range" id="binauralVolume" min="0" max="1" step="0.01" value="0.15" class="w-full">
-
-                        <!-- Melodic Lead Engine Integration -->
-                        <div class="border-t border-white/10 pt-3 mt-3 space-y-3">
-                            <div class="flex items-center justify-between">
-                                <div class="flex items-center gap-2">
-                                    <i data-lucide="music-2" class="w-4 h-4 text-sky-400"></i>
-                                    <span class="text-xs font-semibold tracking-wider text-sky-300 uppercase">Melodic Lead Engine</span>
-                                </div>
-                                <span id="leadVolVal" class="text-xs text-sky-400">30%</span>
-                            </div>
-
-                            <div class="grid grid-cols-2 gap-3">
-                                <div>
-                                    <label class="block text-[10px] text-slate-400 mb-1">Lead Timbre</label>
-                                    <select id="leadTimbreSelect" class="w-full bg-slate-900 border border-white/10 rounded-lg px-2 py-1.5 text-xs text-slate-300">
-                                        <option value="glass">Glass Chime (FM)</option>
-                                        <option value="flute">Soft Flute (Triangle)</option>
-                                        <option value="keys">Warm Electric Keys</option>
-                                        <option value="kalimba">Plucked Kalimba</option>
-                                    </select>
-                                </div>
-                                <div>
-                                    <label class="block text-[10px] text-slate-400 mb-1">Pace: <span id="leadSpeedVal" class="text-sky-400">Medium</span></label>
-                                    <input type="range" id="leadSpeed" min="1" max="5" step="1" value="3" class="w-full mt-1">
-                                </div>
-                            </div>
-
-                            <div>
-                                <label class="block text-[10px] text-slate-400 mb-1">Lead Volume</label>
-                                <input type="range" id="leadVolume" min="0" max="1" step="0.01" value="0.3" class="w-full">
-                            </div>
-                        </div>
                     </div>
 
                 </div>
@@ -693,8 +693,15 @@
             startBinauralTones() {
                 this.stopBinauralTones();
 
-                const baseFreq = parseFloat(document.getElementById('binauralFreqSelect').value);
-                const beatFreq = parseFloat(document.getElementById('binauralBeatSelect').value);
+                const freqVal = document.getElementById('binauralFreqSelect').value;
+                const beatVal = document.getElementById('binauralBeatSelect').value;
+
+                if (freqVal === 'none' || beatVal === 'none') {
+                    return;
+                }
+
+                const baseFreq = parseFloat(freqVal);
+                const beatFreq = parseFloat(beatVal);
 
                 const merger = this.ctx.createChannelMerger(2);
 
@@ -960,7 +967,26 @@
                 const osc = this.ctx.createOscillator();
                 const noteGain = this.ctx.createGain();
 
-                if (timbre === 'glass') {
+                if (timbre === 'handpan') {
+                    // Acoustic Handpan Synthesis
+                    osc.type = 'sine';
+                    const mod = this.ctx.createOscillator();
+                    const modG = this.ctx.createGain();
+                    mod.type = 'triangle';
+                    mod.frequency.setValueAtTime(freq * 2.0, now);
+                    modG.gain.setValueAtTime(freq * 0.4, now);
+                    modG.gain.exponentialRampToValueAtTime(0.001, now + 0.8);
+                    
+                    mod.connect(modG);
+                    modG.connect(osc.frequency);
+                    mod.start(now);
+                    mod.stop(now + 2.5);
+
+                    noteGain.gain.setValueAtTime(0, now);
+                    noteGain.gain.linearRampToValueAtTime(0.35, now + 0.015);
+                    noteGain.gain.exponentialRampToValueAtTime(0.0001, now + 2.2);
+
+                } else if (timbre === 'glass') {
                     osc.type = 'sine';
                     const mod = this.ctx.createOscillator();
                     const modG = this.ctx.createGain();
