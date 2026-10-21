@@ -590,47 +590,50 @@
             }
 
             setupMixerChannels() {
+                // Helper per convertire il valore dello slider (0..1) in guadagno esponenziale
+                const getExpGain = (id) => Math.pow(parseFloat(document.getElementById(id).value), 2);
+            
                 // Pad gain
                 this.padGainNode = this.ctx.createGain();
-                this.padGainNode.gain.setValueAtTime(parseFloat(document.getElementById('padVolume').value), this.ctx.currentTime);
+                this.padGainNode.gain.setValueAtTime(getExpGain('padVolume'), this.ctx.currentTime);
                 this.padGainNode.connect(this.masterGain);
                 this.padGainNode.connect(this.reverbGain);
-
+            
                 // Drone gain
                 this.droneGainNode = this.ctx.createGain();
-                this.droneGainNode.gain.setValueAtTime(parseFloat(document.getElementById('droneVolume').value), this.ctx.currentTime);
+                this.droneGainNode.gain.setValueAtTime(getExpGain('droneVolume'), this.ctx.currentTime);
                 this.droneGainNode.connect(this.masterGain);
-
+            
                 // Rain gain
                 this.rainGainNode = this.ctx.createGain();
-                this.rainGainNode.gain.setValueAtTime(parseFloat(document.getElementById('rainVolume').value), this.ctx.currentTime);
+                this.rainGainNode.gain.setValueAtTime(getExpGain('rainVolume'), this.ctx.currentTime);
                 this.rainGainNode.connect(this.masterGain);
-
+            
                 // Wind gain
                 this.windGainNode = this.ctx.createGain();
-                this.windGainNode.gain.setValueAtTime(parseFloat(document.getElementById('windVolume').value), this.ctx.currentTime);
+                this.windGainNode.gain.setValueAtTime(getExpGain('windVolume'), this.ctx.currentTime);
                 this.windGainNode.connect(this.masterGain);
-
+            
                 // Binaural gain
                 this.binauralGainNode = this.ctx.createGain();
-                this.binauralGainNode.gain.setValueAtTime(parseFloat(document.getElementById('binauralVolume').value), this.ctx.currentTime);
+                this.binauralGainNode.gain.setValueAtTime(getExpGain('binauralVolume'), this.ctx.currentTime);
                 this.binauralGainNode.connect(this.masterGain);
-
+            
                 // Chord Progression Pad gain
                 this.chordGainNode = this.ctx.createGain();
-                this.chordGainNode.gain.setValueAtTime(parseFloat(document.getElementById('chordVolume').value), this.ctx.currentTime);
+                this.chordGainNode.gain.setValueAtTime(getExpGain('chordVolume'), this.ctx.currentTime);
                 this.chordGainNode.connect(this.masterGain);
                 this.chordGainNode.connect(this.reverbGain);
-
+            
                 // FM Chimes / Bells gain
                 this.chimeGainNode = this.ctx.createGain();
-                this.chimeGainNode.gain.setValueAtTime(parseFloat(document.getElementById('chimeVolume').value), this.ctx.currentTime);
+                this.chimeGainNode.gain.setValueAtTime(getExpGain('chimeVolume'), this.ctx.currentTime);
                 this.chimeGainNode.connect(this.masterGain);
                 this.chimeGainNode.connect(this.reverbGain);
-
+            
                 // Melodic Lead Engine gain
                 this.leadGainNode = this.ctx.createGain();
-                this.leadGainNode.gain.setValueAtTime(parseFloat(document.getElementById('leadVolume').value), this.ctx.currentTime);
+                this.leadGainNode.gain.setValueAtTime(getExpGain('leadVolume'), this.ctx.currentTime);
                 this.leadGainNode.connect(this.masterGain);
                 this.leadGainNode.connect(this.reverbGain);
             }
@@ -1368,36 +1371,51 @@
         document.getElementById('padVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             document.getElementById('padVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.padGainNode) audioEngine.padGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            if (audioEngine.padGainNode) audioEngine.padGainNode.gain.setValueAtTime(Math.pow(val, 2), audioEngine.ctx.currentTime);
         });
-
+        
         document.getElementById('droneVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             document.getElementById('droneVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.droneGainNode) audioEngine.droneGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            if (audioEngine.droneGainNode) audioEngine.droneGainNode.gain.setValueAtTime(Math.pow(val, 2), audioEngine.ctx.currentTime);
         });
-
+        
         document.getElementById('rainVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             document.getElementById('rainVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.rainGainNode) audioEngine.rainGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            if (audioEngine.rainGainNode) audioEngine.rainGainNode.gain.setValueAtTime(Math.pow(val, 2), audioEngine.ctx.currentTime);
         });
-
+        
         document.getElementById('windVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             document.getElementById('windVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.windGainNode) audioEngine.windGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            if (audioEngine.windGainNode) audioEngine.windGainNode.gain.setValueAtTime(Math.pow(val, 2), audioEngine.ctx.currentTime);
         });
-
+        
         document.getElementById('binauralVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             document.getElementById('binauralVolVal').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.binauralGainNode) audioEngine.binauralGainNode.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            if (audioEngine.binauralGainNode) audioEngine.binauralGainNode.gain.setValueAtTime(Math.pow(val, 2), audioEngine.ctx.currentTime);
         });
-
-        document.getElementById('melodySpeed').addEventListener('input', (e) => {
+        
+        // Harmonic Layer Controls
+        document.getElementById('chordVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
-            document.getElementById('melodySpeedValue').textContent = `${val.toFixed(1)}s`;
+            document.getElementById('chordVolVal').textContent = `${Math.round(val * 100)}%`;
+            if (audioEngine.chordGainNode) audioEngine.chordGainNode.gain.setValueAtTime(Math.pow(val, 2), audioEngine.ctx.currentTime);
+        });
+        
+        document.getElementById('chimeVolume').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            document.getElementById('chimeVolVal').textContent = `${Math.round(val * 100)}%`;
+            if (audioEngine.chimeGainNode) audioEngine.chimeGainNode.gain.setValueAtTime(Math.pow(val, 2), audioEngine.ctx.currentTime);
+        });
+        
+        // Melodic Lead Engine Controls
+        document.getElementById('leadVolume').addEventListener('input', (e) => {
+            const val = parseFloat(e.target.value);
+            document.getElementById('leadVolVal').textContent = `${Math.round(val * 100)}%`;
+            if (audioEngine.leadGainNode) audioEngine.leadGainNode.gain.setValueAtTime(Math.pow(val, 2), audioEngine.ctx.currentTime);
         });
 
         // Harmonic Layer Controls
