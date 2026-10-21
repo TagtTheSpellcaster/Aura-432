@@ -1343,7 +1343,13 @@
         document.getElementById('masterVolume').addEventListener('input', (e) => {
             const val = parseFloat(e.target.value);
             document.getElementById('masterVolValue').textContent = `${Math.round(val * 100)}%`;
-            if (audioEngine.masterGain) audioEngine.masterGain.gain.setValueAtTime(val, audioEngine.ctx.currentTime);
+            
+            if (audioEngine.masterGain) {
+                // Mappatura esponenziale per rispecchiare la percezione umana (scala in dB)
+                // val = 0.5 -> gain = 0.25 (-12 dB percepiti in modo naturale)
+                const expGain = Math.pow(val, 2); 
+                audioEngine.masterGain.gain.setValueAtTime(expGain, audioEngine.ctx.currentTime);
+            }
         });
 
         document.getElementById('filterCutoff').addEventListener('input', (e) => {
